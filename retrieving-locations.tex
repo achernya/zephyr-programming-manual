@@ -1,7 +1,7 @@
 % Copyright (c) 1988 Massachusetts Institute of Technology
 %	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/retrieving-locations.tex,v $
-%	$Author: jtkohl $
-%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/retrieving-locations.tex,v 2.0 1989/04/05 15:56:41 jtkohl Exp $
+%	$Author: raeburn $
+%	$Id: retrieving-locations.tex,v 2.1 1990/07/15 15:53:25 raeburn Exp $
 %
 \subsection{Retrieving User Locations}
 \label{retrieving-locations}
@@ -37,6 +37,29 @@ HostManager and server.  Check to be sure the Protocol Version numbers
 are the same as the protocol version of your application (inspect
 \filename{/usr/include/zephyr/zephyr.h} to find the protocol version
 numbers of your application).
+
+\subsubsection{ZNewLocateUser}
+\label{ZNewLocateUser}
+
+\template{Code_t}{ZNewLocateUser}{user, nlocs, cert_routine}
+\tline{char}{*user}
+\tline{int}{*nlocs}
+\tline{int}{(*cert_routine)()}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZNewLocateUser function queries the user location service for the
+location of user {\bf user}.  The locations are stored in allocated
+storage.  The number of locations retrieved is returned in {\bf
+*nlocs}.  If another ZNewLocateUser call is done, the old storage is
+freed and new storage allocated as necessary.  {\bf cert_routine} is a
+function that will authenticate the query, or NULL if no such
+authentication is requested.  See \myref{authenticated-notices} for a
+description of authentication.
+
+The possible error codes returned are the same as for ZLocateUser.
 
 \subsubsection{ZGetLocations}
 \label{ZGetLocations}
