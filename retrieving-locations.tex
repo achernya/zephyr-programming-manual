@@ -1,0 +1,129 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/retrieving-locations.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/retrieving-locations.tex,v 2.0 1989/04/05 15:56:41 jtkohl Exp $
+%
+\subsection{Retrieving User Locations}
+\label{retrieving-locations}
+
+The following functions allow an application to retrieve information
+from the user location service (\myref{user-location}).
+
+\subsubsection{ZLocateUser}
+\label{ZLocateUser}
+
+\template{Code_t}{ZLocateUser}{user, nlocs}
+\tline{char}{*user}
+\tline{int}{*nlocs}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZLocateUser function queries the user location service for the
+location of user {\bf user}.  The locations are stored in allocated
+storage.  The number of locations retrieved is returned in {\bf *nlocs}.
+If another ZLocateUser call is done, the old storage is freed and new
+storage allocated as necessary.
+
+An error return of ZERR_VERS usually indicates a version mismatch of the
+following types:
+\begin{itemize}
+\item A new application running on a host with an old HostManager.
+\item An old server.
+\end{itemize}
+The {\tt zstat} program will display the version numbers of both the
+HostManager and server.  Check to be sure the Protocol Version numbers
+are the same as the protocol version of your application (inspect
+\filename{/usr/include/zephyr/zephyr.h} to find the protocol version
+numbers of your application).
+
+\subsubsection{ZGetLocations}
+\label{ZGetLocations}
+
+\template{Code_t}{ZGetLocations}{location, numloc}
+\tline{ZLocations_t}{location[]}
+\tline{int}{*numloc}
+\etemplate
+\prereq{ZInitialize, ZLocateUser}
+\errors{ZERR_NOLOCATIONS, ZERR_NOMORELOCS}
+
+The ZGetLocations function returns the next user location entries that
+were retrieved with ZLocateUser.  If there are no stored locations,
+ZERR_NOLOCATIONS is returned.  {\bf *numloc} should initially contain
+the maximum number of locations that can fit in the {\bf location}
+buffer.  On return, {\bf *numloc} will contain the number of entries
+actually returned.  Subsequent calls to ZGetLocations will return
+additional location entries if possible.  When there are no more unseen
+locations in the internal storage, ZERR_NOMORELOCS is returned.  As the
+pointers in the filled-in ZLocations_t structure point into private
+storage used by ZLocateUser, the contents may change on future calls to
+ZLocateUser.  Thus they should be copied into other storage by the
+client if necessary.
+
+\subsubsection{ZFlushLocations}
+\label{ZFlushLocations}
+
+\template{Code_t}{ZFlushLocations}{}
+\etemplate
+\prereq{ZInitialize, ZLocateUser}
+\errors{None}
+
+The ZFlushLocations function frees any storage allocated by the
+most recent ZLocateUser call.
+
+\subsubsection{Sample Application}
+
+This application demonstrates use of ZLocateUser and ZGetLocations.  It
+verifies that a username was specified on the command line, then
+initializes the library, queries the server for the locations of the
+specified user, and prints out any locations found.
+
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main(argc, argv)
+    int argc;
+    char *argv[];
+{
+    ZLocations_t location;
+    Code_t retval;
+    int i, totallocs, numlocs;
+
+    /* verify a username was given on command line */
+    if (argc < 2) {
+        fprintf(stderr, "No username specified!\n");
+        exit (1);
+    }
+
+    /* Initialize library */
+    if ((retval = ZInitialize()) != ZERR_NONE) {
+        com_err("sample", retval, "while initializing");
+        exit (1);
+    }
+
+    /* Locate the user. */
+    if ((retval = ZLocateUser(argv[1], &totallocs)) != ZERR_NONE) {
+        com_err("sample", retval, "while locating user");
+        exit (1);
+    }
+
+    /* complain if not logged in */
+    if (totallocs == 0) {
+        printf("%s not logged in.\n", argv[1]);
+        exit(1);
+    }
+
+    /* retrieve each location, one at a time */
+    for (i=0; i<totallocs; i++) {
+        numlocs = 1;
+        if ((retval = ZGetLocations(&location, &numlocs)) != ZERR_NONE) {
+            com_err("sample", retval, "while getting location");
+            exit (1);
+        }
+        printf("%s at %s on %s\n", location.host, location.time,
+            location.tty);
+    }
+    exit(0);
+}
+\end{code}

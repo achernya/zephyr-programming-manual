@@ -1,0 +1,108 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscribing.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscribing.tex,v 2.0 1989/04/05 15:57:57 jtkohl Exp $
+%
+\subsection{Subscribing to Notices}
+\label{subscribing}
+
+The following functions allow an application to subscribe to notices.
+The subscription service is described in \myref{subscription}.
+
+ZSubscribeTo and ZUnsubscribeTo use the ZSubscription_t structure, which
+has the following fields:
+
+\begin{itemize}
+\item {\bf char *class}: The class of the subscription.
+\item {\bf char *classinst}: The instance of the subscription.
+\item {\bf char *recipient}: The recipient of the subscription.
+\end{itemize}
+
+\subsubsection{ZSubscribeTo}
+\label{ZSubscribeTo}
+
+\template{Code_t}{ZSubscribeTo}{sublist, nitems, port}
+\tline{ZSubscription_t}{sublist[]}
+\tline{int}{nitems}
+\tline{unsigned short}{port}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZSubscribeTo function attempts to inform the \Zephyr\ servers that
+subscriptions for the indicated {\bf port} on the current host should
+be added.  The subscriptions are listed as class/instance/recipient
+triples in the {\bf sublist} array.  {\bf nitems} is the number of
+entries in the {\bf sublist} array.  {\bf port} will usually be the
+port number of the current application.  If {\bf port} is 0, the
+port number of the current application is substituted.
+
+\subsubsection{ZUnsubscribeTo}
+\label{ZUnsubscribeTo}
+
+\template{Code_t}{ZUnsubscribeTo}{sublist, nitems, port}
+\tline{ZSubscription_t}{sublist[]}
+\tline{int}{nitems}
+\tline{unsigned short}{port}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZUnsubscribeTo function attempts to inform the \Zephyr\ servers
+that the specified subscriptions for the indicated {\bf port} on the
+current host should be deleted.  The subscriptions are listed as
+class/instance/recipient triples in the {\bf sublist} array.
+{\bf nitems} is the number of entries in the {\bf sublist} array.
+{\bf port} will usually be the port number of the current application.
+If {\bf port} is 0, the port number of the current application is substituted.
+
+ZUnsubscribeTo may be useful to remove the server default subscriptions
+(\myref{default-subscriptions}),
+which are automatically recorded for every port which has been passed to
+the ZSubscribeTo function.  See \myref{ZRetrieveDefaultSubscriptions} to
+see how to examine the default subscriptions.
+
+\subsubsection{ZCancelSubscriptions}
+\label{ZCancelSubscriptions}
+
+\template{Code_t}{ZCancelSubscriptions}{port}
+\tline{unsigned short}{port}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZCancelSubscriptions function removes {\em all\/} of the
+subscriptions for the indicated {\bf port}.  If {\bf port} is 0, the
+port number of the current application is substituted.
+
+\subsubsection{Subscribing for the WindowGram Client}
+\label{subscribing-zwgc}
+
+The WindowGram client is the standard way for users to receive incoming
+notices.  To accomodate this, applications will occasionally want to
+subscribe to notices on behalf of the WindowGram client; in this way an
+application can easily add to the types of notices that the user will
+receive.  The {\bf zctl} command is an example of a program that will
+subscribe on behalf of the WindowGram client.
+
+\paragraph{ZGetWGPort}
+\label{ZGetWGPort}
+
+\template{int}{ZGetWGPort}{}
+\etemplate
+\prereq{None}
+\errors{-1 = No port number available}
+
+The ZGetWGPort function returns the port number associated with the
+user's WindowGram client.  It does this by examining the WGFILE
+environment variable, and reading the file \filename{/tmp/\$WGFILE}.
+If WGFILE is not set, \filename{/tmp/wg.{\em uid\/}}, where uid is the
+UNIX user ID of the user, is examined instead.  If neither file could be
+found, -1 is returned.
+
+The port number returned by ZGetWGPort can be cast to an unsigned short
+value and used as the {\bf port} argument to ZSubscribeTo,
+ZUnsubscribeTo, or ZCancelSubscriptions.

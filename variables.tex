@@ -1,0 +1,130 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/variables.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/variables.tex,v 2.0 1989/04/05 15:58:51 jtkohl Exp $
+%
+\subsection{Variable Handling}
+\label{variables}
+
+\subsubsection{ZGetVariable}
+\label{ZGetVariable}
+
+\template{char *}{ZGetVariable}{var}
+\tline{char}{*var}
+\etemplate
+\prereq{None}
+\errors{NULL = variable not defined}
+
+The ZGetVariable function returns the value assigned to the variable
+{\bf var}.  Variable names are case insensitive.  Two variable files are
+searched: the user's private variables file
+(\filename{\~{ }/.zephyr.vars})
+and the system default variables file.  If the variable
+is defined in the user's variables file, any system default value is
+ignored.  If the variable is not defined in the user's variables file,
+but is defined in the system default variables file, the system default
+value is used.  If the variable is not defined in either file, NULL is
+returned.  Errors encountered while opening or reading a variables file
+are not returned.  The pointer returned points to storage internal to
+the library.  The value should be copied before ZGetVariable is called
+again.
+
+\subsubsection{ZSetVariable}
+\label{ZSetVariable}
+
+\template{Code_t}{ZSetVariable}{var, value}
+\tline{char}{*var}
+\tline{char}{*value}
+\etemplate
+\prereq{None}
+\errors{UNIX errors, ZERR_INTERNAL}
+
+The ZSetVariable function sets the value of the variable {\bf var} to
+{\bf value} in the user's private variables file.  If a variable was
+already present with the same name, it is replaced.  Variable names
+are case insensitive.  If the library can't find the user's home
+directory, an error message is printed and ZERR_INTERNAL is returned.
+A UNIX error code is returned if an error is encountered while opening,
+reading, or writing the user's variables file.
+
+\subsubsection{ZUnsetVariable}
+\label{ZUnsetVariable}
+
+\template{Code_t}{ZUnsetVariable}{var}
+\tline{char}{*var}
+\etemplate
+\prereq{None}
+\errors{UNIX errors, ZERR_INTERNAL}
+
+The ZUnsetVariable function removes the definition of the variable
+{\bf var} from the user's variables file.  If the variable is
+not defined, no error is returned.  Variable names are case
+insensitive.  If the library can't find the user's home directory, an
+error message is printed and ZERR_INTERNAL is returned.  A UNIX error
+code is returned if an error is encountered while opening, reading, or
+writing the variables file.
+
+\subsubsection{Sample Application}
+\label{variables-application}
+
+This application demonstrates use of ZSetVariable, ZUnsetVariable, and
+ZGetVariable.  It plays with the ``exposure'' variable, showing
+the value, unsetting any private value, showing any default value, and
+restoring any private value.
+
+\ss
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main()
+{
+    char current[100];           /* Assume the exposure is < 100 chars */
+    char *value;
+    Code_t status;
+    int had_exposure = 0;
+
+    /* Retrieve and copy "exposure" variable */
+    if ((value = ZGetVariable("exposure")) == NULL)
+        printf("No current value for 'exposure'\n");
+    else {
+        printf("Your value for 'exposure': %s\n", value);
+        strcpy(current, value);
+        had_exposure = 1;
+    }
+
+    /* Unset "exposure" variable */
+    if ((status = ZUnsetVariable("exposure")) != ZERR_NONE) {
+        com_err("sample", status,
+                "while unsetting variable 'exposure'");
+        exit(1);
+    }
+
+    /* 
+     * Retrieve "exposure" variable.  If there is a system default,
+     * it should be retrieved here, since exposure was unset above.
+     */
+    if ((value = ZGetVariable("exposure")) == NULL)
+        printf("No default value for 'exposure'\n");
+    else
+        printf("System default value for 'exposure': %s\n", value);
+
+    /* Re-set exposure if we saved it above */
+    if (had_exposure) {
+        printf("Setting 'exposure' back to original value\n");
+        if ((status = ZSetVariable("exposure", current)) !=
+            ZERR_NONE) {
+            com_err("sample", status,
+                    "while setting variable 'exposure'");
+            exit(1);
+        }
+        /* Verify that the exposure was saved */
+        if ((value = ZGetVariable("exposure")) == NULL) {
+            printf("Something went really wrong here...\n");
+            exit(1);
+        } else
+            printf("New value for 'exposure': %s\n", value);
+    }
+    exit(0);
+}
+\end{code}
+\ess

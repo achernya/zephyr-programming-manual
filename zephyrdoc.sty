@@ -1,0 +1,164 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/zephyrdoc.sty,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/zephyrdoc.sty,v 2.0 1989/04/05 16:01:10 jtkohl Exp $
+%
+%
+% This is the ``zephyrdoc'' style file for the Zephyr Programmer's Manual
+%
+
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+% Miscellaneous definitions
+
+\newcommand{\Zephyr}{Zephyr}
+\newcommand{\triple}[3]{$<${#1}, {#2}, {#3}$>$}
+\newcommand{\filename}[1]{{\sl #1}}
+
+% New citation and reference commands
+
+\newcommand{\myref}[1]{\S\ref{#1}}
+
+% Other stuff
+
+\newcommand{\mynote}[1]{\noindent {\bf Draft Note: } {\em #1}}
+%\newcommand{\mynote}[1]{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Get rid of that gross \_ stuff
+
+\newbox\myvoidb
+\def\myleavevmode{\unhbox\myvoidb}
+\catcode`\_=\active
+\def_{\myleavevmode \kern.06em \vbox{\hrule width.3em}}
+\def\_{_}
+
+% Reenable numbering of paragraphs and subparagraphs; modify spacing so
+% subsubsection, paragraph, subparagraph don't take so much (too much
+% whitespace around function templates otherwise) 
+% Modified from art{10,12}.sty labeled: 
+% ARTICLE DOCUMENT STYLE -- Released 22 Dec 1987
+%    for LaTeX version 2.09
+
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}{-3ex}%
+{1ex}{\normalsize\bf}}
+\def\paragraph{\@startsection{paragraph}{4}{\z@}{-3ex}%
+{1ex}{\normalsize\bf}}
+\def\subparagraph{\@startsection{subparagraph}{5}{\z@}{-3ex}%
+{1ex}{\normalsize\bf}}
+
+% This is used by \@startsec to do numbering.  Modified to add a . to
+% the output after section number.  From LATEX.TEX labeled:
+% LATEX VERSION 2.09 <26 Feb 1988>
+
+\def\@sect#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+     \def\@svsec{}\else 
+     \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname.\hskip 1em }\fi
+     \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@ 
+        \begingroup #6\relax
+          \@hangfrom{\hskip #3\relax\@svsec}{\interlinepenalty \@M #8\par}
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}\else
+        \def\@svsechd{#6\hskip #3\@svsec #8\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}\fi
+     \@xsect{#5}}
+
+% Output file for templates...
+
+\newwrite\@templates
+\immediate\openout\@templates=\jobname.tpl
+
+\def\writetemplate#1{\immediate\write\@templates{#1}}
+\writetemplate{\relax}
+
+\def\closetemplates{\immediate\closeout\@templates}
+
+\def\template#1#2#3{
+	\par\ss\noindent Function template for #2:
+	\par
+	\noindent \small #1 #2 \parbox[t]{4in}{\raggedright(#3)} \newline
+	\begin{tabular}{ll}
+	\writetemplate{\string\nwtemplate{#1}{#2}{#3}}}
+
+\def\etemplate{
+	\end{tabular}\normalsize\ess
+	\writetemplate{\string\nwetemplate}}
+
+\def\tline#1#2{
+	\hspace*{3em} #1 & #2; \\
+	\writetemplate{\string\nwtline{#1}{#2}}}
+
+\newcommand{\prereq}[1]{
+	\par\noindent Prerequisite functions:
+	\parbox[t]{4.75in}{\raggedright#1}\par
+	\writetemplate{\string\nwprereq{#1}}}
+
+\newcommand{\errors}[1]{
+	\noindent Possible errors:
+	\parbox[t]{5.25in}{\raggedright#1}\par
+	\writetemplate{\string\nwerrors{#1}}
+	\writetemplate{\string\nwsep}}
+
+\newcommand{\nwsimpletemplate}[3]{
+	\noindent \small #1 #2 \parbox[t]{4in}{\raggedright(#3)} \newline
+	\begin{tabular}{ll}}
+
+\newcommand{\nwtemplate}[3]{
+	\par\noindent Function template for #2:
+	\par
+	\nwsimpletemplate{#1}{#2}{#3}}
+
+\newcommand{\nwetemplate}{
+	\end{tabular}\normalsize}
+
+\newcommand{\nwtline}[2]{
+	\hspace*{3em} #1 & #2; \\}
+
+\newcommand{\nwprereq}[1]{
+	\par\noindent Prerequisite functions:
+	\parbox[t]{4.25in}{\raggedright#1}\par}
+
+\newcommand{\nwerrors}[1]{
+	\noindent Possible errors:
+	\parbox[t]{4.75in}{\raggedright#1}\par}
+
+\newcommand{\nwsep}{
+	\vspace{.2in}
+	\centerline{\rule{6in}{1pt}}
+	\vspace{.2in}}
+
+
+% Function template
+%
+% This is a gross hack so that \_ isn't expanded in function names
+
+%\def\template#1#2#3{\@templatea{#1}{#2}{#3}\@templateb{#1}{#2}{#3}}
+%\def\@templatea{\@bsphack\begingroup
+%	%\def\protect####1{\string####1\space}
+%	\@sanitize
+%	\@template}
+
+%\def\@template#1#2#3{
+%	\global\def\froba{#1}
+%	\global\def\frobb{#2}
+%	\global\def\frobc{#3}
+%	\xdef\@gtempa{
+%		\immediate\write\@templates{\string
+%			\nwtemplate{#1}{#2}{#3}}}
+%	\endgroup\@gtempa
+%	\@esphack
+%	\froba \begin{tabular}{ll}}
+
+%\def\@templateb#1#2#3{
+%	\show{#1}
+%}
+

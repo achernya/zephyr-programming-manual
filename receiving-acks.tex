@@ -1,0 +1,220 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/receiving-acks.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/receiving-acks.tex,v 2.0 1989/04/05 15:55:48 jtkohl Exp $
+%
+\subsection{Receiving Acknowledgments}
+\label{receiving-acknowledgments}
+
+As mentioned in previous sections (\myref{overview} and
+\myref{notice-kinds}) different kinds of notices trigger various
+levels of acknowledgment.  The acknowledgment from the HostManager to
+the sending client is handled internally.  However, any other
+acknowledgments that have been requested must be handled by the
+application program.  These will normally consist solely of
+acknowledgments from the server.
+
+The structure of the returning acknowledgment is described in
+\myref{acknowledgment-structure}.  Acknowledgments have the same
+unique ID as the original notice.  Thus, it is desirable to have some
+way to check or wait for incoming notices with known characteristics
+(such as a certain unique ID).  A simple application may perform the
+following sequence of tasks repeatedly:
+
+\begin{itemize}
+\item Send out a notice
+\item Wait for a server acknowledgment for that notice
+\item Take action based on the information contained in the
+acknowledgment
+\item Repeat
+\end{itemize}
+The following functions make this a painless process.
+
+\subsubsection{Using Predicates}
+\label{using-predicates}
+
+A {\em predicate\/} is a C function which takes a series of arguments
+and returns a true or false value indicating some relationship (or
+lack of relationship) between the arguments.  All predicates which can
+be used by the functions described below must take the format:
+
+\nwsimpletemplate{int}{{\em predicate\/}}{notice, arg}
+\nwtline{ZNotice_t}{*notice}
+\nwtline{char}{*arg}
+\nwetemplate
+
+\noindent The function should return 1 if the {\bf notice} satisfies
+some prespecified relationship with {\bf arg}, 0 otherwise.
+
+\paragraph{ZCompareUIDPred and ZCompareMultiUIDPred}
+\label{ZCompareUIDPred}
+\label{ZCompareMultiUIDPred}
+
+The only predicates supplied by the \Zephyr\ library are ZCompareUIDPred
+and ZCompareMultiUIDPred.  Both take a notice and a pointer to a
+ZUnique_Id_t as arguments.  ZCompareUIDPred returns 1 if the unique ID
+of the notice is the same as the supplied unique ID, or 0 if they are
+different.  ZCompareMultiUIDPred returns 1 if the z_multiuid field of
+the notice is the same as the supplied unique ID, or 0 if they are
+different.
+
+\subsubsection{ZCheckIfNotice}
+\label{ZCheckIfNotice}
+
+\template{Code_t}{ZCheckIfNotice}{notice, from, predicate, args}
+\tline{ZNotice_t}{*notice}
+\tline{struct sockaddr_in}{*from}
+\tline{int}{(*predicate)()}
+\tline{char}{*args}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{UNIX errors, ZERR_BADPKT, ZERR_VERS, ZERR_PKTLEN, ZERR_NOPORT,
+ZERR_QLEN, ZERR_NONOTICE}
+
+The ZCheckIfNotice function scans the notice input queue.  For each
+notice, it calls the {\bf predicate} function with the notice and {\bf
+arg}.  If the {\bf predicate} returns 1, ZCheckIfNotice allocates a
+packet buffer and copies the notice data into this buffer, then parses
+the packet into {\bf notice}, removes the notice from the queue, and
+returns ZERR_NONE.  If no notice is found which is accepted by the {\bf
+predicate}, ZCheckIfNotice returns ZERR_NONOTICE.  {\bf *from} is filled
+in with the address of the host which sent the notice.
+
+After a successful return from the ZCheckIfNotice function,
+ZFreeNotice (\myref{ZFreeNotice}) should be called with argument {\bf
+notice} when the caller has finished using {\bf notice}.
+
+\subsubsection{ZFreeNotice}
+\label{ZFreeNotice}
+
+\template{void}{ZFreeNotice}{notice}
+\tline{ZNotice_t}{*notice}
+\etemplate
+\prereq{None}
+\errors{None}
+
+ZFreeNotice frees up the storage allocated for a notice by other library
+routines.  ZFreeNotice should only be used for notices returned by
+library functions whose documentation instructs the programmer to use
+ZFreeNotice.
+
+\subsubsection{ZIfNotice}
+\label{ZIfNotice}
+
+\template{Code_t}{ZIfNotice}{notice, from, predicate, args}
+\tline{ZNotice_t}{*notice}
+\tline{struct sockaddr_in}{*from}
+\tline{int}{(*predicate)()}
+\tline{char}{*args}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{UNIX errors, ZERR_BADPKT, ZERR_VERS, ZERR_PKTLEN, ZERR_NOPORT,
+ZERR_QLEN}
+
+The ZIfNotice function performs identically to the ZCheckIfNotice
+function above, except that if there is no notice in the input queue
+that fits the desired criteria as determined by {\bf predicate},
+ZIfNotice will wait until a satisfying notice is received, and then
+perform as described above for ZCheckIfNotice.
+
+After a successful return from the ZIfNotice function,
+ZFreeNotice (\myref{ZFreeNotice}) should be called with argument {\bf
+notice} when the caller has finished using {\bf notice}.
+
+\subsubsection{ZCompareUID}
+\label{ZCompareUID}
+
+\template{int}{ZCompareUID}{uid1, uid2}
+\tline{ZUnique_Id_t}{*uid1}
+\tline{ZUnique_Id_t}{*uid2}
+\etemplate
+\prereq{None}
+\errors{None}
+
+There are times when the above routines may be inefficient.  For
+example, an application may simply want to accept incoming notices,
+and decide on the fly whether a notice is an acknowledgment to a
+previously sent notice.  The ZCompareUID function provides an easy
+means to determine if two unique ID's are the same.  It returns 1 if
+they are the same, and 0 if they are different.
+
+\subsubsection{Sample Application}
+
+This application demonstrates use of ZSendNotice and ZIfNotice by
+sending a simple message to a username specified on the command line.  It
+verifies that a username was specified, initializes the library, fills in
+the notice, sends it, and then waits for an acknowledgment.  When the
+acknowledgment is received, it checks the response and prints a message
+indicating the response type.
+
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main(argc,argv)
+    int argc;
+    char *argv[];
+{
+    ZNotice_t notice, retnotice;
+    Code_t retval;
+
+    /* verify username is specified */
+    if (argc < 2) {
+        fprintf(stderr, "No username specified!\n");
+        exit (1);
+    }
+
+    /* Initialize the library */
+    if ((retval = ZInitialize()) != ZERR_NONE) {
+        com_err("sample", retval, "while initializing");
+        exit (1);
+    }
+
+    bzero((char *)&notice, sizeof(notice));
+    /* initialize the notice after zeroing the entire structure */
+    /* Fill in the notice fields */
+    notice.z_kind = ACKED;      /* ACKED since we want an acknowledgment */
+    notice.z_port = 0;  /* Will be filled in by HostManager */
+    notice.z_class = "MESSAGE";
+    notice.z_class_inst = "PERSONAL";
+    notice.z_opcode = "";
+    /* The sender will get filled in by the library if 0 */
+    notice.z_sender = (char *)NULL;
+    /* Send to the person named on the command line */
+    notice.z_recipient = argv[1];
+    notice.z_default_format = "";
+
+    notice.z_message = "Hi there!\n";
+    /* Make sure we include the trailing NULL in the length */
+    notice.z_message_len = strlen(notice.z_message)+1;
+
+    /* Send the notice unauthenticated */
+    /* ZSendNotice will automatically open a port for us */
+    if ((retval = ZSendNotice(&notice, ZNOAUTH)) != ZERR_NONE) {
+        com_err("sample", retval, "while sending notice");
+        exit (1);
+    }
+
+    /* Wait for the server response. */
+    if ((retval = ZIfNotice(&retnotice, (struct sockaddr_in *)0,
+                            ZCompareUIDPred,
+                            (char *)&notice.z_uid)) != ZERR_NONE) {
+            com_err("sample", retval, "while waiting for ack");
+            exit (1);
+    } 
+
+    /* Was there an error? */
+    if (retnotice.z_kind == SERVNAK) {
+        printf("Received authentication failure while sending\n");
+        exit (1);
+    }
+
+    /* Check the message body for the acknowledgment information */
+    if (!strcmp(retnotice.z_message, ZSRVACK_SENT))
+        printf("Message sent!\n");
+    else
+        printf("%s not receiving messages!\n", argv[1]);
+
+    ZFreeNotice(&retnotice);
+    exit (0);
+}
+\end{code}

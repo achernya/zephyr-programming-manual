@@ -1,0 +1,99 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/overview.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/overview.tex,v 2.0 1989/04/05 15:53:55 jtkohl Exp $
+%
+\section{Overview of the Zephyr System}
+\label{overview}
+
+\subsection{Major Divisions}
+
+The \Zephyr\ system consists of three primary sections:
+
+\begin{itemize}
+\item{\bf The \Zephyr\ clients:} These are the applications which
+actually use \Zephyr\ to accomplish a task.  Examples of clients are
+{\bf zwrite}, which allows a user to send messages to other users,
+{\bf syslogd}, which can send system warnings to users, and {\bf zwgc},
+the WindowGram client, which is the standard way for users to receive
+incoming notices.  Clients are generally written using the \Zephyr\
+library, which is the primary subject of this manual.
+
+\item{\bf The HostManager:} The HostManager is the intermediary between the
+clients and the rest of the \Zephyr\ system.  There is one HostManager
+running on every host which supports \Zephyr\ programs.  All clients
+send their outgoing notices to the HostManager.  The HostManager then
+redistributes them to \Zephyr\ servers for final delivery.  The
+HostManager is in charge of determining if a particular server is still
+operational, and choosing a different server if necessary.
+
+\item{\bf The \Zephyr\ servers:} These are the core of the \Zephyr\
+system.  They are in charge of receiving notices from the clients (via
+the HostManagers), figuring out which clients or users should receive
+them, and distributing them.  They are also in charge of keeping an
+up-to-date user location database.  There can be any number of servers
+spread throughout a workstation environment.  The servers keep in
+constant communication, sharing information about changed
+subscriptions and changed user locations.
+\end{itemize}
+
+The communication between these three components is indicated
+schematically in Figure~\ref{fig:zephyr-interaction}.  One server and
+two hosts are shown.  Each host consists of a HostManager and two
+clients.  The sending host is sending a message which is received by a
+client on the receiving host.  This is a simplified
+view of the computing environment.  Normally there would be hundreds
+or thousands of hosts, and several servers which keep in constant
+communication with each other.
+
+\begin{figure}
+\input{interaction-pic}
+\caption{Interaction between the various parts of a \Zephyr\ system.}
+\label{fig:zephyr-interaction}
+\end{figure}
+
+When a notice is sent from a client, many events happen ``behind the
+scenes'' that are not normally seen by the user.  However, these
+events are very important to an applications programmer, and are listed
+in simplified form below.  Note that many of these actions occur in
+parallel so this should not be construed as an absolute order of events.
+
+\begin{enumerate}
+\item The source client program calls a \Zephyr\ library routine which
+sends a notice.
+\item The \Zephyr\ library sends the notice to the HostManager on the
+same host, and then waits for an acknowledgment.
+\item The HostManager receives the notice, and sends back an
+acknowledgment (HMACK) to the originating client.
+\item The \Zephyr\ library receives the acknowledgment and returns to
+the calling program.
+\item The HostManager forwards the notice to a \Zephyr\ server, and
+appends the notice to its queue of unacknowledged notices.
+\item The \Zephyr\ server receives the notice, determines its
+recipients, and sends back an acknowledgment (SERVACK) to the HostManager.
+\item The HostManager receives the acknowledgment, removes the notice
+from its queue of unacknowledged notices, and forwards a copy of the
+acknowledgment (SERVACK) to the client program.
+\item The client program receives and disposes of the acknowledgment.
+\item The server forwards the notice to all recipients, and
+each time appends the notice to its queue of unacknowledged notices.
+\item A destination client receives the notice, and sends back an
+acknowledgment (CLIENTACK) to the server.
+\item The server receives the acknowledgment and removes the notice
+from its queue of unacknowledged notices.
+\end{enumerate}
+
+\noindent At each stage except the initial client to HostManager
+communication, if an acknowledgment is not received after a certain 
+length of time, the notice is retransmitted.  The initial client to
+HostManager communication is not retransmitted because there is little
+chance of a notice being lost when transmitted to a program on the
+same machine, and thus the lack of an acknowledgment indicates that
+something is very wrong.
+
+Flags may be set in the notice to indicate how much acknowledgment
+should be done.  The possibilities range from no acknowledgments to the
+full acknowledgment scenario listed above.  A discussion of the
+different levels of acknowledgment can be found in \myref{notice-kinds},
+and a discussion of the structure of acknowledgments can be found in
+\myref{acknowledgment-structure}.

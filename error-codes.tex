@@ -1,0 +1,83 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/error-codes.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/error-codes.tex,v 2.0 1989/04/05 15:50:40 jtkohl Exp $
+%
+\section{Error Codes}
+\label{error-codes}
+
+The following error codes are defined in zephyr_err.h, which
+is included by zephyr.h:
+
+\begin{tabbing}
+ZERR_NOMORESUBSCRIPTIONS\ \ \= \kill
+ZERR_NONE \> \parbox[t]{4in}{No error was detected.} \\
+\\
+ZERR_PKTLEN \> \parbox[t]{4in}{A notice was too big to fit into the supplied buffer,
+or ran over the maximum allowed packet size.} \\
+\\
+ZERR_HEADERLEN \> \parbox[t]{4in}{A formatted notice header exceeded the
+maximum header length.} \\
+\\
+ZERR_ILLVAL \> \parbox[t]{4in}{A member of the notice structure contained an illegal value.} \\
+\\
+ZERR_HMPORT \> \parbox[t]{4in}{The port number for the HostManager could not be found in
+\filename{/etc/services}.} \\
+\\
+ZERR_PORTINUSE \> \parbox[t]{4in}{The port explicitly requested in a call to ZOpenPort
+couldn't be bound.} \\
+\\
+ZERR_BADPKT \> \parbox[t]{4in}{The packet is badly formatted and can't be parsed.} \\
+\\
+ZERR_VERS \> \parbox[t]{4in}{The packet was formatted using a version of the
+protocol which is incompatible with the protocol supported by this
+version of the library function.} \\
+\\
+ZERR_NOPORT \> \parbox[t]{4in}{A function which requires an open port was called
+before a port was opened.} \\
+\\
+ZERR_NONOTICE \> \parbox[t]{4in}{No notice which was accepted by the predicate was
+found by ZCheckIfNotice.} \\
+\\
+ZERR_QLEN \> \parbox[t]{4in}{Too many notices have been read in to the input queue but not
+retrieved.} \\
+\\
+ZERR_HMDEAD \> \parbox[t]{4in}{The HostManager did not send an acknowledgment to a packet.} \\
+\\
+ZERR_INTERNAL \> \parbox[t]{4in}{Something really strange is going on, probably with
+the system instead of with the application itself (for example,
+\filename{/etc/passwd} can't be read).} \\
+\\
+ZERR_NOLOCATIONS \> \parbox[t]{4in}{No locations were available to return using
+ZGetLocations or flush using ZFlushLocations.  This usually means that
+ZLocateUser hasn't been called yet.} \\
+\\
+ZERR_NOMORELOCS \> \parbox[t]{4in}{No more locations were available to return.  This
+means that ZGetLocations wants to retrieve more locations than are
+available.} \\
+\\
+ZERR_FIELDLEN \> \parbox[t]{4in}{The data passed to ZMakeAscii exceeds the size of the
+supplied buffer.} \\
+\\
+ZERR_BADFIELD \> \parbox[t]{4in}{The data passed to ZReadAscii is in an improper format.} \\
+\\
+ZERR_SERVNAK \> \parbox[t]{4in}{A server negative-acknowledgment was received while
+performing a privileged operation (such as subscribing).  This usually
+means that user authentication failed.} \\
+\\
+ZERR_AUTHFAIL \> \parbox[t]{4in}{A login notice was not authenticated properly.} \\
+\\
+ZERR_LOGINFAIL \> \parbox[t]{4in}{A login notice was not accepted by the server.} \\
+\\
+ZERR_NOSUBSCRIPTIONS \> \parbox[t]{4in}{No subscriptions were available to return
+using ZGetSubscriptions or flush using ZFlushSubscriptions.  This
+usually means that ZRetrieveSubscriptions or
+ZRetrieveDefaultSubscriptions hasn't been called yet.} \\
+\\
+ZERR_NOMORESUBSCRIPTIONS \> \parbox[t]{4in}{No more subscriptions were available to
+return.  This means that ZGetSubscriptions wants to retrieve more subscriptions than are available.} \\
+\\
+ZERR_EOF \> \parbox[t]{4in}{The file descriptor that the library is using to read its
+packets was inadvertently closed.} \\
+\\
+\end{tabbing}

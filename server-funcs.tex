@@ -1,0 +1,119 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/server-funcs.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/server-funcs.tex,v 2.0 1989/04/05 15:57:49 jtkohl Exp $
+%
+\subsection{Server Functions}
+\label{server-functions}
+
+The following functions are normally only used by the \Zephyr\ server
+and the HostManager.
+
+\subsubsection{ZSetServerState}
+\label{ZSetServerState}
+
+\template{Code_t}{ZSetServerState}{state}
+\tline{int}{state}
+\etemplate
+\prereq{ZInitialize}
+\errors{None}
+
+If the \Zephyr\ library is to be used to perform Server or Hostmanager
+functions, the behavior of various internal routines needs to be
+modified.  If {\bf state} is non-zero, the server behavior is selected.
+If {\bf state} is zero, the server behavior is inhibited.
+
+By default, the \Zephyr\ library assumes non-server behavior is desired.
+
+\subsubsection{ZSrvSendNotice}
+\label{ZSrvSendNotice}
+
+\template{Code_t}{ZSrvSendNotice}{notice, cert_routine, send_routine}
+\tline{ZNotice_t}{*notice}
+\tline{int}{(*cert_routine)()}
+\tline{int}{(*send_routine)()}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_HEADERLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZSrvSendNotice function performs identically to the ZSendNotice
+function (\myref{ZSendNotice}), except that {\bf send_routine} is used
+to transmit each fragment of the resulting notice.  {\bf send_routine}
+will be called as follows:
+\par\ss
+\nwsimpletemplate{Code_t}{send_routine}{notice, buffer, len, waitforack}
+\nwtline{ZNotice_t}{*notice}
+\nwtline{char}{*buffer}
+\nwtline{int}{len}
+\nwtline{int}{waitforack}
+\nwetemplate\ess
+{\bf notice} points to the notice fragment corresponding to the
+formatted fragment. It is provided in case {\bf send_routine} wishes to
+examine fields, such as uniqe ID's, before transmitting.
+{\bf buffer} points to a formatted fragment to be transmitted.
+{\bf len} is the length of the fragment.
+{\bf waitforack} is non-zero if the notice kind is UNACKED or ACKED and
+server mode has not been set.
+
+\subsubsection{ZSrvSendList}
+\label{ZSrvSendList}
+
+\template{Code_t}{ZSrvSendList}{notice, list, nitems, cert_routine, send_routine}
+\tline{ZNotice_t}{*notice}
+\tline{char}{*list[]}
+\tline{int}{nitems}
+\tline{int}{(*cert_routine)()}
+\tline{int}{(*send_routine)()}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_HEADERLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZSrvSendList function performs identically to the ZSendList function
+(\myref{ZSendList}), except that {\bf send_routine} is used to transmit
+each fragment of the resulting notice.  {\bf send_routine} will be
+called as described above for ZSrvSendNotice.
+
+\subsubsection{ZSrvSendRawList}
+\label{ZSrvSendRawList}
+
+\template{Code_t}{ZSrvSendRawList}{notice, list, nitems, send_routine}
+\tline{ZNotice_t}{*notice}
+\tline{char}{*list[]}
+\tline{int}{nitems}
+\tline{int}{(*send_routine)()}
+\etemplate
+\prereq{ZInitialize}
+\errors{UNIX errors, ZERR_PKTLEN, ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS,
+ZERR_QLEN}
+
+The ZSrvSendRawList function performs identically to the ZSendRawList
+function (\myref{ZSendRawList}), except that {\bf send_routine} is used
+to transmit each fragment of the resulting notice.  {\bf send_routine}
+will be called as described above for ZSrvSendNotice.
+
+\subsubsection{ZFormatAuthenticNotice}
+\label{ZFormatAuthenticNotice}
+
+\template{Code_t}{ZFormatAuthenticNotice}{notice, buffer, buffer_len, ret_len, session}
+\tline{ZNotice_t}{*notice}
+\tline{char}{*buffer}
+\tline{int}{buffer_len}
+\tline{int}{*ret_len}
+\tline{C_Block}{session}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_HEADERLEN, ZERR_ILLVAL}
+
+The ZFormatAuthenticNotice function takes {\bf notice} and formats it
+into a packet.  The packet is stored in the user-supplied buffer {\bf
+*buffer}.  {\bf buffer_len} should be the size of the buffer.  If the
+notice will not fit in the buffer, an error is returned.  The length of
+the resulting packet is returned in {\bf *ret_len}. The DES library
+routine {\bf quad_cksum} is called to checksum the appropriate portions
+of the notice, using {\bf session} as the session key, thus generating a
+cryptographic checksum.  This checksum is stored as the checksum in the
+packet.  When {\bf session} is shared between the sender and recipient
+of the notice, the authentication can be verified using
+ZCheckAuthentication (\myref{ZCheckAuthentication}).

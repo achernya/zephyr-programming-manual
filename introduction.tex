@@ -1,0 +1,61 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/introduction.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/introduction.tex,v 2.0 1989/04/05 15:52:46 jtkohl Exp $
+%
+\section{Introduction}
+\label{introduction}
+
+\Zephyr\ is a notice transport and delivery system developed at MIT
+Project Athena in 1987.  It is an integrated system that provides the
+ability to send notifications, such as personal messages and system
+warnings, from one user or system service to another user or group of
+users.
+
+This manual describes the \Zephyr\ library, the programmer's interface
+to \Zephyr.  The \Zephyr\ library consists of a collection of C
+language functions which allow the programmer to send and receive
+notices.  Additional functions are provided in the library to modify
+how notices are distributed and to retrieve various pieces of
+information.
+
+Because this manual is primarily concerned with describing how to
+write an application which uses \Zephyr, the internal workings of the
+\Zephyr\ system are not discussed in detail.  The interested reader
+can find additional information about \Zephyr\ in the \Zephyr\ design
+document \cite{zephyr-design}.
+
+This manual is organized into four main sections as follows:
+
+\begin{description}
+\item {\bf Overview of the \Zephyr\ System}.  This
+section describes the various components of \Zephyr, and briefly
+describes how they interact.
+
+\item {\bf General Concepts}.  This
+section describes the subscription and user location services.
+
+\item {\bf Programming Standard
+Applications}.  This section describes the \Zephyr\ include files,
+the functions available in the \Zephyr\ library, and many concepts
+that are relevant to programming \Zephyr\ applications.
+
+\item {\bf Advanced Programming
+Topics}.  This section describes more advanced topics, including how
+to send control messages to \Zephyr\ servers and HostManagers.
+\end{description}
+
+In addition, the following appendices are provided:
+
+\begin{description}
+\item {\bf Additional Examples}.  Listings of
+{\bf zwrite}, {\bf zlocate}, and {\bf zstat}, three standard \Zephyr\
+applications, are provided.
+\item {\bf Error Codes}.  All \Zephyr\ error codes are
+listed with a brief description of each.
+%\item {\bf Predefined Notice Formats}.  Contains notice formats
+%which are currently in use by \Zephyr\ applications or which are used
+%internally by the \Zephyr\ system.
+\item {\bf Function Templates}.  Contains the templates
+for all of the functions mentioned in this manual.
+\end{description}

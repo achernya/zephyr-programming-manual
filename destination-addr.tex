@@ -1,0 +1,39 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/destination-addr.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/destination-addr.tex,v 2.0 1989/04/05 15:50:37 jtkohl Exp $
+%
+\subsection{Changing the Destination Address}
+\label{destination-addr}
+
+Applications normally want to send all outgoing notices to the
+HostManager, which will redistribute them to the proper server.  In
+some cases, though, an application may want to communicate directly
+with a specific client or server, bypassing the normal routing
+mechanisms.  The following functions facilitate this.
+
+\subsubsection{ZGetDestAddr}
+\label{ZGetDestAddr}
+
+\template{struct sockaddr_in}{ZGetDestAddr}{}
+\etemplate
+\prereq{ZInitialize}
+\errors{None}
+
+The ZGetDestAddr function returns the current destination address used
+by the \Zephyr\ library.  This sockaddr_in (internet address and port
+number) is the destination for all packets transmitted by the 
+\Zephyr\ library.
+
+
+\subsubsection{ZSetDestAddr}
+\label{ZSetDestAddr}
+
+\template{Code_t}{ZSetDestAddr}{addr}
+\tline{struct}{sockaddr_in *addr}
+\etemplate
+\prereq{ZInitialize}
+\errors{None}
+
+The ZSetDestAddr function sets the destination address for all packets
+transmitted by the \Zephyr\ library.

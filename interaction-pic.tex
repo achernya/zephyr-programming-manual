@@ -1,0 +1,62 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/interaction-pic.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/interaction-pic.tex,v 2.0 1989/04/05 15:52:42 jtkohl Exp $
+%
+\setlength{\unitlength}{.1in}
+% This is a hostmanager - coords are center point
+\def\zhostmanager(#1,#2){
+	\thinlines
+	\put(#1,#2){\oval(10,5)}
+	\put(#1,#2){\makebox(0,0){\small HostManager}}
+}
+% This is a client - coords are bottom left
+\def\zclient(#1,#2){
+	\thinlines
+	\put(#1,#2){\framebox(10,4){\small Client}}
+}
+% This is a client with a dashed box - coords are bottom left
+\def\zdashedclient(#1,#2){
+	\thinlines
+	\put(#1,#2){\dashbox{.5}(10,4){\small Client}}
+}
+\begin{center}
+\begin{picture}(50,40)
+% Draw big server at top
+\thicklines
+\put(15,32.5){\framebox(20,7){\large Server}}
+\put(15.5,33){\framebox(19,6){}}
+\put(16,33.5){\framebox(18,5){}}
+% Draw hostmanager on left
+\zhostmanager(15,20)
+% Client under it
+\zclient(10,8)
+% A dashed client under that one
+\zdashedclient(10,2)
+% Draw hostmanager on right
+\zhostmanager(35,20)
+% Clients under it
+\zclient(30,8)
+\zdashedclient(30,2)
+% Connect hostmanager on right to server
+\put(37,22.5){\vector(-1,4){2.5}}
+\put(37,24){\tiny notice}
+\put(30.5,32.5){\vector(1,-4){2.5}}
+\put(26,31){\tiny SERVACK}
+% Connect client on right to hostmanager
+\put(37,12){\vector(0,1){5.5}}
+\put(37.5,13){\tiny notice}
+\put(33,17.5){\vector(0,-1){5.5}}
+\put(28,14){\shortstack{\tiny HMACK \\ \tiny \& \\ \tiny SERVACK}}
+% Connect server to client on left
+\put(24,32.5){\line(0,-1){23}}
+\put(24,9.5){\vector(-1,0){4}}
+\put(24.5,29){\tiny notice}
+\put(20,11){\line(1,0){2}}
+\put(22,11){\vector(0,1){21.5}}
+\put(16,13){\tiny CLIENTACK}
+% Label the hosts
+\put(15,0){\makebox(0,0){Receiving Host}}
+\put(35,0){\makebox(0,0){Sending Host}}
+\end{picture}
+\end{center}

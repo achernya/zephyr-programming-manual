@@ -1,0 +1,108 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/changing-location.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/changing-location.tex,v 2.0 1989/04/05 15:50:06 jtkohl Exp $
+%
+\subsection{Changing Your Location Information}
+\label{changing-location}
+
+The following functions allow an application to register a user,
+change a user's exposure level, deregister a user, and flush all
+locations associated with a certain user from the database.
+
+\subsubsection{ZSetLocation}
+\label{ZSetLocation}
+
+\template{Code_t}{ZSetLocation}{exposure}
+\tline{char}{*exposure}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN, ZERR_SERVNAK,
+ZERR_AUTHFAIL, ZERR_LOGINFAIL}
+
+The ZSetLocation function registers the current user with the \Zephyr\
+servers.  The information that is registered is as follows:
+
+\begin{itemize}
+\item {\bf user:} The user running the application.
+\item {\bf host:} The host on which which the application is being
+run.
+\item {\bf tty:} The name of the terminal controlling the
+application ({\it e.g.\/}, ttyp5); if the workstation is running
+the X window system, the display (such as ``unix:0.0'') is used
+instead.
+\item {\bf time:} The current time.
+\item {\bf exposure:} As indicated by the {\bf exposure} argument.
+\end{itemize}
+
+\noindent {\bf exposure} may be one of the following constants (defined in
+zephyr.h):
+
+\begin{list}{}{}
+\item EXPOSE_NONE - No exposure
+\item EXPOSE_OPSTAFF - Operational staff exposure
+\item EXPOSE_REALMVIS - Realm visible
+\item EXPOSE_REALMANN - Realm announced
+\item EXPOSE_NETVIS - Net-wide visible
+\item EXPOSE_NETANN - Net-wide announced
+\end{list}
+More detailed information about the meaning of each exposure level can
+be found in the ``Exposure Levels'' section (\myref{user-location}).
+
+If the user is already registered, this function may be used to change
+the user's time and exposure information.
+Note, however, that calling ZSetLocation to change the exposure may
+generate spurious login notices.  If the new exposure is sufficiently broad
+to allow login notifications (see \myref{exposure-levels}), a login
+notice will be sent to any users who have subscribed to such notices.
+
+This function uses an authenticated notice to present the information to
+the server.
+
+ZERR_NONE is returned if there were no errors.  ZERR_INTERNAL is
+returned if any consistency checks on the acknowledgment failed.
+ZERR_AUTHFAIL is returned if the server rejected the authentication
+information in the notice.  ZERR_LOGINFAIL is returned if the location
+information which would have been modified was not already present in
+the server database.  ZERR_SERVNAK is returned if some other server
+failure occured.
+
+\subsubsection{ZUnsetLocation}
+\label{ZUnsetLocation}
+
+\template{Code_t}{ZUnsetLocation}{}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN, ZERR_SERVNAK,
+ZERR_AUTHFAIL, ZERR_LOGINFAIL}
+
+The ZUnsetLocation function deletes the user's location information from
+the location database.  Only the information associated with the current
+host and terminal (or display) are deleted from the database.  If the
+user's exposure was either EXPOSE_REALMANN or EXPOSE_NETANN, a
+deregistration notice is sent by the server to the
+recipients subscribed to such notifications.  The ``Exposure Levels'' section
+(\myref{exposure-levels}) describes exposure levels in detail.
+
+The errors returned and their causes are the same as described above in
+ZSetLocation.
+
+\subsubsection{ZFlushMyLocations}
+\label{ZFlushMyLocations}
+
+\template{Code_t}{ZFlushMyLocations}{}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN, ZERR_SERVNAK,
+ZERR_AUTHFAIL, ZERR_LOGINFAIL}
+
+The ZFlushMyLocations function removes all location information about
+the current user from the location database.  This may be used to
+remove stale data from the database.  No deregistration messages are
+sent.
+
+The errors returned and their causes are the same as described above in
+ZSetLocation.

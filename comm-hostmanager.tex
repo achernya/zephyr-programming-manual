@@ -1,0 +1,79 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/comm-hostmanager.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/comm-hostmanager.tex,v 2.0 1989/04/05 15:50:13 jtkohl Exp $
+%
+\subsection{Communicating with the HostManager}
+\label{comm-hostmanager}
+
+The following sections describe control notices that can be
+sent to a HostManager to ask it to perform various functions.
+
+\subsubsection{Where to Send Notices}
+
+Notices should be sent to the HostManager port on the desired host.
+Since the default destination is the HostManager on the local host,
+the destination need not be changed if the control message is
+destined for the local host's HostManager.  Otherwise, the port may
+be found by looking up port name ``zephyr-hm'', protocol ``udp'' using
+the C library routine getservent().
+
+\subsubsection{Available Commands}
+
+The following functions are available.  They are listed in the form
+[kind, class, instance, opcode].  The rest of the notice ({\em e.g.\/}
+the message body) has no effect on the requested action.  Functions
+which are only for internal use are not described here.
+
+\begin{itemize}
+\item {[HMCTL, HM_CTL_CLASS, HM_CTL_CLIENT, CLIENT_FLUSH]}:
+Send a state-flush command to the current server.
+\item {[HMCTL, HM_CTL_CLASS, HM_CTL_CLIENT, CLIENT_NEW_SERVER]}:
+Find a new server.
+\item {[STAT, HM_STAT_CLASS, HM_STAT_CLIENT, HM_GIMMESTATS]}: Reply with a
+notice containing statistics information.
+\end{itemize}
+
+\subsubsection{Sample Application}
+
+This application demonstrates sending a control notice to a HostManager, 
+asking it to find a new server.  The application
+initializes the library, fills in the control notice, and sends it off.
+It does not wait for any acknowledgement.
+
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main()
+{
+    ZNotice_t notice;
+    Code_t retval;
+
+    /* Initialize library */
+    if ((retval = ZInitialize()) != ZERR_NONE) {
+        com_err("sample", retval, "while initializing");
+        exit (1);
+    }
+
+    bzero((char *)&notice, sizeof(notice));
+    /* initialize the notice after zeroing the entire structure */
+    /* Fill in notice for a FIND-NEW-SERVER command */
+    notice.z_kind = HMCTL;
+    notice.z_port = 0;
+    notice.z_class = HM_CTL_CLASS;
+    notice.z_class_inst = HM_CTL_CLIENT;
+    notice.z_opcode = CLIENT_NEW_SERVER;
+    notice.z_sender = 0;
+    notice.z_recipient = "";
+    notice.z_default_format = "";
+    notice.z_message = "";
+    notice.z_message_len = 0;
+
+    /* send it off to the local HostManager */
+    if ((retval = ZSendNotice(&notice, ZNOAUTH)) != ZERR_NONE) {
+        com_err("sample", retval, "while sending notice");
+        exit (1);
+    }
+    exit(0);
+}
+\end{code}

@@ -1,0 +1,29 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/cleaning-up.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/cleaning-up.tex,v 2.0 1989/04/05 15:50:10 jtkohl Exp $
+%
+\subsection{Cleaning Up}
+\label{cleaning-up}
+
+\subsubsection{ZClosePort}
+\label{ZClosePort}
+
+\template{Code_t}{ZClosePort}{}
+\etemplate
+\prereq{None}
+\errors{None}
+
+The ZClosePort function closes the \Zephyr\ port that was opened with
+the ZOpenPort function (\myref{ZOpenPort}).  If no port was opened
+with ZOpenPort, or a new file descriptor was set with ZSetFD
+(\myref{ZSetFD}), no action is performed.  It is not really necessary
+to call ZClosePort before an application exits, since UNIX will
+automatically close all open file descriptors when a program exits.
+
+\subsubsection{ZCancelSubscriptions}
+\label{ZCancelSubscriptions-pt1}
+
+Before an application exits, it should cancel any subscriptions
+it has made.  The ZCancelSubscriptions function
+(\myref{ZCancelSubscriptions}) performs this task.

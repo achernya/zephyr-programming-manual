@@ -1,0 +1,38 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/conventions.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/conventions.tex,v 2.0 1989/04/05 15:50:24 jtkohl Exp $
+%
+\section{Manual Conventions}
+\label{conventions}
+
+The following typographical conventions are used in this manual:
+
+\begin{itemize}
+\item A combination of class, class instance, and recipient (used for
+subscriptions) is written as \triple{\sc class}{\sc instance}{\sc
+recipient}.
+
+\item A function template is written as follows:
+
+\nwtemplate{int}{function}{arg1, arg2}
+\nwtline{int}{arg1}
+\nwtline{char}{*arg2}
+\nwetemplate
+\nwprereq{Any functions that must be called before this one.}
+\nwerrors{All possible error codes that could be returned.}
+
+\item During the discussion of a function, arguments are written in
+bold type, like {\bf arg1}.
+
+\item Explicit members of a structure are also written in bold type,
+like {\bf member}.
+
+\item Filenames are written in slanted type, like \filename{filename}.
+
+\item Symbols that are defined in an include file are written in the
+normal type face, like ZERR_NONE.
+
+\item Strings that should be entered explicitly are written between
+quotes, like ``rfrench''.
+\end{itemize}

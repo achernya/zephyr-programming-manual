@@ -1,0 +1,67 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/locator.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/locator.tex,v 2.0 1989/04/05 15:53:45 jtkohl Exp $
+%
+\subsection{The User Location Service}
+\label{user-location}
+
+In addition to storing subscription information about each user, the
+\Zephyr\ servers maintain a database of the location of each
+currently logged-in user.  This information is not used by the servers to
+determine where to send notices---a client can subscribe to notices
+without being registered in the location database---but is made
+available to other users for personal use.
+
+Normally a user is registered by a standard client application (such
+as the WindowGram client) upon login, and is deregistered at logout.
+However, an application may occasionally desire to modify or remove
+user location information from the database.  The ZSetLocation
+function (\myref{ZSetLocation}) will do this.
+
+\subsubsection{Location Information}
+
+The following information is stored by the \Zephyr\ servers for each
+registered user:
+
+\begin{itemize}
+\item The name of the host the user is registered from.
+\item The name of the terminal the user is using; on a workstation that
+supports the X window system, this may be the display name instead.
+\item The date and time the user was registered.
+\end{itemize}
+
+\subsubsection{Exposure Levels}
+\label{exposure-levels}
+
+A user can register at any of a number of {\em exposure levels\/}.  An
+exposure level tells the servers who will be able to access
+information about the user's location, and whether or not the
+registration will be announced to other users.  When a registration
+can be announced to other users, the \Zephyr\ server sends it to users
+subscribing to \triple{\sc LOGIN}{{\em user}}{*}, where {\em user\/} is a
+fully qualified Kerberos principal ({\em user@realm}).  If Kerberos is
+not in use, the user field will be {\em user@host}.
+
+The following exposure levels are defined:
+
+\begin{itemize}
+\item {\bf None:} The user's location information is completely hidden, and the
+registration is not announced.
+\item {\bf Opstaff:} Only members of the site's operational staff can
+retrieve the user's location information, and the registration is not
+announced.
+\item {\bf Realm-Visible:} Only users authenticated in the local
+Kerberos realm can retrieve the user's location information, and the
+registration is not announced.
+\item {\bf Realm-Announced:} Only users authenticated in the local
+Kerberos realm can retrieve the user's location information, and the
+registration is announced to all interested users in the local realm.
+\item {\bf Net-Visible:} All users can retrieve the user's location
+information.  The registration is announced to all interested users
+in the local realm. 
+\item {\bf Net-Announced:} All users can retrieve the user's location
+information, and the registration is announced to all interested users.
+\end{itemize}
+When Kerberos is not enabled, each host is interpreted as a separate
+realm for purposes of exposure levels and login notices.

@@ -1,0 +1,239 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/sending-notices.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/sending-notices.tex,v 2.0 1989/04/05 15:56:50 jtkohl Exp $
+%
+\subsection{Sending Notices}
+\label{sending-notices}
+
+There are a number of functions that will take a notice described by a
+ZNotice_t structure and transmit it to the current destination
+address (usually the HostManager).  Each of the functions requires the
+following fields to be initialized in the ZNotice_t structure:
+\begin{list}{}{}
+\item {\bf z_kind}
+\item {\bf z_port} (may be 0)
+\item {\bf z_class}
+\item {\bf z_class_inst}
+\item {\bf z_opcode}
+\item {\bf z_sender} (may be 0)
+\item {\bf z_recipient}
+\item {\bf z_default_format}
+\end{list}
+The rest of the structure should be zeroed out, with code similar to
+this:
+\begin{code}
+        ZNotice_t notice;
+
+        bzero((char *)&notice, sizeof(notice));
+        /* initialize the notice after zeroing the entire structure */
+        notice.z_kind = acked;
+\end{code}
+
+In addition to the above fields, ZSendNotice requires the {\bf
+z_message} and {\bf z_message_len} fields to be initialized.  The
+contents of each of these fields, and the default values for those that
+have them, are described in detail in the ZNotice_t section
+(\myref{ZNoticet}).
+
+\subsubsection{ZSendNotice}
+\label{ZSendNotice}
+
+\template{Code_t}{ZSendNotice}{notice, cert_routine}
+\tline{ZNotice_t}{*notice}
+\tline{int}{(*cert_routine)()}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_HEADERLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZSendNotice function takes the notice described by {\bf notice}
+and sends it to the current destination address (usually the
+HostManager).  {\bf cert_routine} is a function that will
+authenticate the message, or is NULL if no such authentication is
+requested.  See
+\myref{authenticated-notices} for a description of notice
+authentication.  The fields {\bf z_message} and {\bf z_message_len}
+must be set in {\bf notice}.  If no port has yet been allocated,
+ZOpenPort(0) (\myref{ZOpenPort}) is automatically called.
+
+If the total header size plus the length of the message exceeds the
+maximum packet size, the notice will be fragmented into multiple
+packets; thus there is no limit\footnote{Well, almost no limit.
+Sending very large notices ($>$ 50K) will be very inefficient using this
+method.  It would be much better to use \Zephyr\ as a rendezvous
+service (see \myref{rendezvous-service}).} on notice size.  This
+fragmentation is transparent to the application program.
+
+If the {\bf z_kind} field of {\bf notice} is UNACKED or ACKED, and
+server mode has not been set (see ZSetServerState,
+\myref{ZSetServerState}), the library
+will automatically wait for an acknowledgment from the HostManager.
+If the acknowledgment does not arrive after thirty seconds,
+ZERR_HMDEAD is returned.
+
+\subsubsection{ZSendList}
+\label{ZSendList}
+
+\template{Code_t}{ZSendList}{notice, list, nitems, cert_routine}
+\tline{ZNotice_t}{*notice}
+\tline{char}{*list[]}
+\tline{int}{nitems}
+\tline{int}{(*cert_routine)()}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_HEADERLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZSendList function performs identically to the ZSendNotice
+function above, except that the message body is taken from the {\bf
+list} argument instead of the {\bf z_message} field of {\bf notice}.  {\bf
+nitems} is the number of items ({\bf nitems} $\geq$ 0) in the {\bf list}
+array.  The items in {\bf list} are concatenated in order with a NULL
+placed after each one.
+
+\subsubsection{Useful Information to Include in a Notice}
+
+The following functions provide information that it may be useful to
+include in the header of a notice.
+
+\paragraph{ZGetSender}
+\label{ZGetSender}
+
+\template{char *}{ZGetSender}{}
+\etemplate
+\prereq{ZInitialize}
+\errors{None}
+
+The ZGetSender function returns the name of the current user.  If
+Kerberos is enabled, ZGetSender will return the Kerberos principal (in
+the form {\em username\/}@{\em realm\/}).  If Kerberos is not enabled,
+or the user is not authenticated, the user's username from
+\filename{/etc/passwd} concatenated with `@' and the official name of
+the current host (in the form {\em username\/}@{\em hostname\/}) will be
+returned.
+
+\paragraph{ZGetRealm}
+\label{ZGetRealm}
+
+\template{char *}{ZGetRealm}{}
+\etemplate
+\prereq{ZInitialize}
+\errors{None}
+
+The ZGetRealm function returns the realm of the current host.  If
+Kerberos is enabled, ZGetRealm will return the current Kerberos realm.
+Otherwise, the official name of the current host is returned.
+
+\subsubsection{Sending Binary Data}
+
+Occasionally it is useful to send binary data in a notice, but to
+represent the binary data in printable form (for debugging or auditing
+purposes).  The ZMakeAscii function makes this task easy.
+
+\paragraph{ZMakeAscii}
+\label{ZMakeAscii}
+
+\template{Code_t}{ZMakeAscii}{buffer, buffer_len, field, field_len}
+\tline{char}{*buffer}
+\tline{int}{buffer_len}
+\tline{unsigned char}{*field}
+\tline{int}{field_len}
+\etemplate
+\prereq{None}
+\errors{ZERR_FIELDLEN}
+
+The ZMakeAscii function converts {\bf field_len} bytes of data
+stored in {\bf field} into printable ASCII and stores them in the {\bf
+buffer} of length {\bf buffer_len}.  If the converted data is longer
+than {\bf buffer_len} bytes, ZERR_FIELDLEN is returned.  The
+data generated by ZMakeAscii can be converted back to binary with
+ZReadAscii (\myref{ZReadAscii}).
+
+The data generated by ZMakeAscii is in the format ``{\tt 0xaabbccdd
+0xeeffgghh}\ldots'', where {\tt aa} is the hexadecimal representation
+of the first byte in the buffer, {\tt bb} is the second byte, etc.
+
+\subsubsection{Sending Authenticated Notices}
+\label{authenticated-notices}
+
+A notice may be {\em authenticated\/} by the Kerberos authentication
+system \cite{kerberos-paper}.
+When this is done, the recipient of the notice is guaranteed that the
+Kerberos principal in the {\bf z_sender} field is the actual sender
+of the notice.  Note that true authentication only works when
+Kerberos is enabled.  If Kerberos is not in use, any notice claiming to
+be authentic will appear authentic, and there is no guarantee of actual
+authenticity.
+
+ZMakeAuthentication is the function in the \Zephyr\ library which
+authenticates a packet under Kerberos.  Since this is an internal
+function and should never be called directly, its template is not given
+here.  The symbols ZAUTH and ZNOAUTH are defined to be
+ZMakeAuthentication and NULL, respectively.  In this way one of these
+abbreviations may be placed in the {\bf cert_routine} parameter for
+ZFormatNotice, ZSendNotice, ZSendList or ZSrvSendList to either enable
+or disable authentication.  As new forms of authentication are
+developed, new abbreviations will be provided.
+
+Authenticated notices should be used only when necessary because of
+their greater overhead.  The time required to compute the DES
+encryptions is usually around $\frac{1}{4}$ second at each step in the
+transmission: sender, server, and recipient.
+
+A notice can be checked for authentication with the
+ZCheckAuthentication function (\myref{ZCheckAuthentication}).
+
+\subsubsection{Sample Application}
+
+This application demonstrates use of ZSendNotice.
+It initializes the \Zephyr\ library, fills in a
+notice structure (with the recipient set to the user executing the
+application), and calls ZSendNotice twice to send the notice, first
+unauthenticated and then authenticated.
+
+\ss
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main()
+{
+    int status;
+    ZNotice_t notice;
+
+    /* Initialize the library */
+    if ((status = ZInitialize()) != ZERR_NONE) {
+        com_err("sample", status, "while initializing");
+        exit(1);
+    }
+
+    bzero((char *)&notice, sizeof(notice));
+    /* initialize the notice after zeroing the entire structure */
+    notice.z_kind = UNACKED;    /* We don't care about acknowledgments */
+    notice.z_port = 0;  /* Will be filled in by HostManager */
+    notice.z_class = "MESSAGE";
+    notice.z_class_inst = "PERSONAL";
+    notice.z_opcode = "";
+    /* The sender will get filled in by the library if 0 */
+    notice.z_sender = (char *)NULL;
+    notice.z_recipient = ZGetSender(); /* Send to myself */
+    notice.z_default_format = "";
+
+    notice.z_message = "Hello - This is an example!";
+    /* Make sure we include the trailing NULL in the length */
+    notice.z_message_len = strlen(notice.z_message)+1;
+
+    /* First send the notice unauthenticated */
+    /* ZSendNotice will automatically open a port for us */
+    if ((status = ZSendNotice(&notice, ZNOAUTH)) != ZERR_NONE)
+        com_err("sample", status, "while sending notice");
+
+    /* Send it again, authenticated */
+    if ((status = ZSendNotice(&notice, ZAUTH)) != ZERR_NONE) {
+        com_err("sample", status, "while sending notice");
+        exit(1);
+    }
+    exit(0);
+}
+\end{code}
+\ess

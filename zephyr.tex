@@ -1,0 +1,121 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/zephyr.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/zephyr.tex,v 2.0 1989/04/05 15:58:55 jtkohl Exp $
+%
+\iffalse		 % true for 21.780 style, false for real
+
+\documentstyle[zephyrdoc,doublespace,timrom,12pt]{article}
+\setstretch{1.7}
+\def\ss{\begin{singlespace}}
+\def\ess{\end{singlespace}}
+\def\excuses{Note: Because this document is double-spaced with wide margins
+to ease proofreading, the portions which require complex formatting
+may no longer look nice.  The accompanying single-spaced document
+should be consulted to find out what the document is really supposed
+to look like.}
+\setlength{\oddsidemargin}{.5in}
+\setlength{\evensidemargin}{.5in}
+\setlength{\topmargin}{0in}
+\setlength{\textheight}{8in}
+\setlength{\parskip}{.1in}
+\setlength{\parindent}{3em}
+\setlength{\textwidth}{5.5in}
+
+\else
+
+\documentstyle[zephyrdoc,timrom,twoside]{article}
+%\documentstyle[zephyrdoc,twoside,12pt]{article}
+\def\ss{}
+\def\ess{}
+\def\excuses{}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{-0.25in}
+\setlength{\topmargin}{-.5in}
+\setlength{\textheight}{9in}
+\setlength{\parskip}{.1in}
+\setlength{\parindent}{2em}
+\setlength{\textwidth}{6.25in}
+
+\raggedbottom
+\fi
+\input{utility}
+
+\pagestyle{headings}
+\hyphenation{ZUnique ZPacket ZNotice}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        Here is the document!                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\typein{Includeonly?}
+\begin{document}
+
+% Title page
+
+\begin{titlepage}
+\setcounter{page}{1} % so that the page is odd, for guttering.
+\input{title-page}
+\end{titlepage}
+
+% Table of contents
+
+\setcounter{page}{1}
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+\setcounter{page}{0}
+\pagenumbering{arabic}
+
+% Introduction
+
+\input{introduction}
+
+% Manual conventions
+
+\include{conventions}
+
+% Overview
+
+\include{overview}
+
+% General concepts
+
+\include{general-concepts}
+
+% Programming for standard applications
+
+\include{standard-applications}
+
+% Advanced topics
+
+\include{advanced-topics}
+
+%
+% Appendices...
+%
+
+\appendix
+
+% Additional examples
+
+\newpage\section{Additional Examples}
+
+The following three sections contain the source code for three typical
+\Zephyr\ applications: zwrite, zlocate, and zstat.
+
+\input{ex-zwrite}
+\newpage\input{ex-zlocate}
+\newpage\input{ex-zstat}
+
+% Reference section
+
+\include{error-codes}
+%	\include{predefined-formats}
+\include{function-templates}
+
+% Where to find additional information
+
+\include{bibliography}
+
+\end{document}

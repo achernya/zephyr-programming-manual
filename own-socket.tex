@@ -1,0 +1,40 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/own-socket.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/own-socket.tex,v 2.0 1989/04/05 15:55:09 jtkohl Exp $
+%
+\subsection{Using Your Own Socket}
+\label{own-socket}
+
+Applications normally use the socket which is bound
+by ZOpenPort.  However, in some cases it may be desirable to
+make the \Zephyr\ library to use a socket that the application has
+already bound.  The following functions facilitate this.
+
+\subsubsection{ZGetFD}
+\label{ZGetFD}
+
+\template{int}{ZGetFD}{}
+\etemplate
+\prereq{ZInitialize or ZSetFD}
+\errors{-1 = No current file descriptor}
+
+The ZGetFD function returns file descriptor that the
+\Zephyr\ library is currently using for the bound socket.  If no file
+descriptor has been assigned yet, -1 is returned.
+
+\subsubsection{ZSetFD}
+\label{ZSetFD}
+
+\template{Code_t}{ZSetFD}{fd}
+\tline{int}{fd}
+\etemplate
+\prereq{None}
+\errors{None}
+
+The ZSetFD function first closes any port that was opened by ZOpenPort
+(\myref{ZOpenPort}) and then sets the file descriptor that the
+\Zephyr\ library will use for all communication to {\bf fd}.  This may
+be useful in an application that needs to open and perform operations
+on its own port ({\it e.g.\/} binding a specific port number) before making it
+available to the \Zephyr\ library.

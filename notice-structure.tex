@@ -1,0 +1,211 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/notice-structure.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/notice-structure.tex,v 2.0 1989/04/05 15:53:49 jtkohl Exp $
+%
+\subsection{The ZNotice_t Structure}
+\label{ZNoticet}
+
+The ZNotice_t structure is the central data object of the \Zephyr\
+library.  Outgoing notices are first represented in a ZNotice_t
+structure, and incoming notices are returned in one.  A \Zephyr\
+notice consists of two primary parts: a header containing information
+about the notice and a data area.  The ZNotice_t structure contains
+information about both portions of the notice.
+
+\subsubsection{Components of the Header}
+
+All fields in the ZNotice_t structure are filled in with valid data
+when a notice is received.  However, only some of the fields need to
+be initialized when a notice is sent.  The rest are either filled in
+automatically by the library, or are filled in with default values if
+they are NULL.  The ZNotice_t structure contains the following fields:
+
+\begin{description}
+\item {\bf char *z_packet}: If the notice has been formatted, or the
+notice was received, this field points to a buffer containing the
+formatted version of the notice.
+
+\item {\bf char *z_version}: The protocol version the notice was formatted
+with in the form ZEPH{\em n\/}.{\em m\/} where {\em n\/} is the major
+version number and {\em m\/} is the minor version number.  This manual
+discusses the functions related to version ZEPH0.2.  If a notice is
+received by a client that supports a different major version, the
+client will refuse to parse the notice.  (This field is filled in
+automatically when the notice is sent.)
+
+\item {\bf ZNotice_Kind_t z_kind}: The type of the notice (see
+\myref{notice-kinds}).  (This field must be initialized by the client
+before the notice is sent.)
+
+\item {\bf ZUnique_Id_t z_uid}: The unique ID of the notice.  This ID
+is actually a per-transaction unique ID instead of a per-notice unique
+ID.  This is described in more detail in
+\myref{acknowledgment-structure}.  (This
+field is filled in automatically when the notice is sent.)
+
+\item {\bf struct timeval z_time}: The time the notice was sent.
+(This field is not actually part of the notice that is sent, but is
+derived from the unique ID when the notice is received.  Thus it does
+not need to be filled in at all when the notice is sent.)
+
+\item {\bf unsigned short z_port}: The port number on the client from
+which the notice was sent.  (This field must be filled in before the
+notice is sent.  If it is 0, it is automatically filled in with the
+client's port number.)
+
+\item {\bf int z_auth}: An indication of how authentic the notice claims
+to be.  0 means not authenticated, 1 means authenticated by Kerberos.
+Note this is an indication of the claim to authenticity, not an
+indication of the actual authenticity.  The function
+ZCheckAuthentication (\myref{ZCheckAuthentication}) verifies or rejects
+this claim.
+(This field is filled in automatically when the notice is sent.)
+
+\item {\bf int z_authent_len}: The length of the authenticator in
+{\bf z_ascii_authent}.  (This field is filled in automatically when
+the notice is sent.)
+
+\item {\bf char *z_ascii_authent}: The authenticator.  This data is
+used to determine the authenticity of the notice as it is passed from
+the client program to the server.  (It is filled in automatically when
+the notice is sent.)
+
+\item {\bf char *z_class}: The class of the notice.  (This field must be
+filled in before the notice is sent.)
+
+\item {\bf char *z_class_inst}: The class instance of the notice.  (This
+field must be filled in before the notice is sent.)
+
+\item {\bf char *z_opcode}: The opcode of the notice.  This is an extra
+field with no specified purpose.  It may be used to provide extra
+information between a client and recipient about a notice's contents.
+The name ``opcode'' is derived from its initial creation as a place to
+put an ``operation code'' about what to do with the notice once it was
+received.  Some internal \Zephyr\ functions use this field.
+Very few applications actually use it for this purpose,
+however.  (It must be filled in before the notice is sent.)
+
+\item {\bf char *z_sender}: The sender of the notice.  (If this field is
+NULL, it will be filled in with the current user's username.  It must
+be set to either a string or NULL before the notice is sent.)
+
+\item {\bf char *z_recipient}: The recipient of the notice.  (This field
+must be filled in before the notice is sent.)
+
+\item {\bf char *z_default_format}: The default display format for the
+notice.  See the \Zephyr\ design document's chapter on the WindowGram
+client for more information about the default format string.  (This
+field must be filled in before the notice is sent.)
+
+\item {\bf char *z_multinotice}: An indication of what part of a
+fragmented notice this notice constitutes.  (This field will be
+filled in automatically.)
+
+\item {\bf ZUnique_Id_t z_multiuid}: An identification of which
+fragmented notice this notice is a part of.  (This field will be
+filled in automatically.)
+
+\item {\bf ZChecksum_t z_checksum}: The cryptographic checksum of
+various header fields, used to check the authenticity of the notice as
+it is passed from the server to the recipient.  (This field will be
+filled in automatically.)
+
+\item {\bf int z_num_other_fields}: The number of extra user-defined or
+unknown fields present in this notice.
+
+\item {\bf char *z_other_fields[Z_MAXOTHERFIELDS]}: An array of the
+extra fields (if any) for this notice.
+
+\item {\bf int z_message_len}: The length, in bytes, of the message in
+{\bf z_message}.  (This field must be filled in before the notice is
+sent.  It may be 0 if no message is being included in the notice body.)
+
+\item {\bf char *z_message}: The body of the message.  (This field must be
+filled in before the notice is sent.  It may be NULL if no message is
+being included in the message body.)
+
+\end{description}
+
+\subsubsection{Notice Kinds}
+\label{notice-kinds}
+
+A ZNotice_Kind_t is an enumerated type of one of the following kinds.
+These kinds may be used in the {\bf z_kind} field of a ZNotice_t
+structure.  Only the first three kinds, UNSAFE, UNACKED, and ACKED,
+will normally be used by an application program.  They are used to
+deliver a notice to a recipient.  The other kinds are included for
+internal communication between the various portions of a \Zephyr\
+system, and the notice is not delivered to a recipient.
+
+\begin{description}
+\item {\bf UNSAFE}: The notice should be delivered.
+No user acknowledgments will be performed.  No
+acknowledgment is sent from the HostManager to the source client, and
+the HostManager will not forward the server acknowledgment to the
+client.  Note that the server still sends the HostManager an
+acknowledgment, and the destination clients still send acknowledgments
+to the server.  UNSAFE is used when a notice needs to be sent, but the
+client can't afford to wait around for acknowledgments (for example, a
+system shutdown message).
+
+\item {\bf UNACKED}: The notice should be
+delivered.  The HostManager will send an acknowledgment to the
+client, but will not forward the server's acknowledgment.  This is
+used by clients which wish to make sure that the notice has actually
+reached the HostManager safely, but don't care if the
+server ever received it.
+
+\item {\bf ACKED}: The notice should be delivered.  The HostManager
+will send an acknowledgment to the client, and will forward the
+server's acknowledgment.  This is used by clients which want to make
+sure the notice got to the server safely, and perhaps want to know if
+the server redistributed the notice to any recipients.
+
+\item {\bf HMACK}: The notice is an acknowledgment from the HostManager to
+a client.
+
+\item {\bf HMCTL}: The notice is a HostManager control packet, which
+may be sent to a HostManager to change its state.  See 
+\myref{comm-hostmanager} for more
+information.
+
+\item {\bf SERVACK}: The notice is an acknowledgment from a server to
+a HostManager, and possibly to a client if the HostManager forwards
+it.
+
+\item {\bf SERVNAK}: The notice is a negative acknowledgment from a
+server to a HostManager, and possibly to a client if the HostManager
+forwards it.  This notice means that something failed and the server
+was unable to distribute the original notice.
+
+\item {\bf CLIENTACK}: The notice is an acknowledgment from a
+receiving client to a server.  These notices are sent automatically
+when a notice is received by the \Zephyr\ library.
+
+\item {\bf STAT}: The notice contains a request for statistics
+information from a HostManager.  See the section on
+HostManager communication (\myref{comm-hostmanager}) for more information.
+\end{description}
+
+\subsubsection{Field Structure of the Notice Body}
+
+The {\bf z_message} field of a notice can contain information in any
+format.  The data may be ASCII text, or it may be raw binary data.
+However, if a notice is to be displayed (by the WindowGram client or a
+similar application), it should conform to the following standard:
+
+\begin{itemize}
+\item All data in the message body should be in printable ASCII form.
+Newline and tab characters are allowed.
+\item If the information can be conveniently broken into fields, the
+fields should be concatenated with a NULL between each field and after
+the last field.
+\item The {\bf z_message_len} should include all NULLs, including
+the one after the last field.
+\end{itemize}
+
+The WindowGram client is capable of accepting a notice in this format
+and displaying it in a user-friendly manner.  See the Zephyr design
+document \cite{zephyr-design} for more information on the WindowGram
+client.

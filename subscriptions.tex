@@ -1,0 +1,170 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscriptions.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscriptions.tex,v 2.0 1989/04/05 15:58:43 jtkohl Exp $
+%
+\subsection{The Subscription Service}
+\label{subscription}
+
+Since the primary purpose of \Zephyr\ is to deliver notices from one
+user or service to another, an important consideration is the means of
+specifying the recipient of a notice.  An application must be able to
+send a given notice to a particular recipient, a known group of
+recipients, or an arbitrary, dynamically changing group of recipients.
+\Zephyr\ accomplishes this by using a ``subscription'' service.  Each
+\Zephyr\ notice contains three fields which determine its recipients:
+{\em class\/}, {\em instance\/}, and {\em recipient\/}.  Users
+subscribe to specific triples of class, instance, and recipient, as
+described below, and these subscriptions are used to determine whether
+or not a given user will receive a notice.
+
+\subsubsection{The {\bf class} field}
+\label{subscription-class}
+
+The class is the top-level characteristic of a notice.  It serves two
+primary purposes:
+
+\begin{itemize}
+\item It is used as the first indicator of who might be able to
+receive the notice
+\item It is used to determine if the sender is authorized to send a
+notice of the particular class (see \myref{subscription-authorization}, 
+``Subscription Authorization'').
+
+\end{itemize}
+
+For example, a ``MESSAGE'' class might be used to indicate a generic
+user-to-user message, and a ``FILSRV'' class might be used to indicate
+a file server message.
+
+\subsubsection{The {\bf instance} field}
+\label{subscription-instance}
+
+The {\em instance\/} is a subdivision of the {\em class\/}.  Its primary
+purpose is to narrow down the subject of the notice.  For example, a
+notice with class ``FILSRV'' might contain the name of the fileserver
+as its instance.  By itself, the instance is not very useful.  It is
+simply an extra string like the class field that is used to determine
+possible recipients.  However, the instance field allows wildcarding
+at subscription time.  This means that a person could subscribe to
+file server messages from only a particular server by specifying the
+file server's name as the instance, or all file server messages by
+specifying instance ``*''.
+
+The only wildcard instance allowed is ``*''.  More complicated
+regular expressions (such as ``*.MIT.EDU'' to match all hosts in the
+MIT.EDU domain) are not allowed.
+
+\subsubsection{The {\bf recipient} field}
+\label{subscription-recipient}
+
+The {\em recipient\/} is the actual username of the person the notice is
+intended for.  On systems which support the Kerberos authentication
+system \cite{kerberos-paper}, the recipient is the Kerberos principal
+of the recipient.  A Kerberos principal is usually of the form {\em
+username}@{\em realm}, where {\em realm\/} is the name of the
+Kerberos realm controlling the user's host.
+
+The recipient field may be wildcarded on both the sending and
+receiving ends.  Once again ``*'' is the only valid wildcard.  These
+limitations apply:
+
+\begin{itemize}
+\item If a user is subscribing to the triple \triple{\em class\/}{\em
+instance}{\bf username}, where {\bf username} is the username of
+the user, only notices with the user's explicit username in their
+recipient field will be sent to the user.
+
+\item If a user is subscribing to the triple \triple{\em class\/}{\em
+instance}{\bf *}, only notices with a recipient of ``*'' will be
+sent to the user.
+\end{itemize}
+
+Thus, if a user is subscribing to \triple{\sc message}{\sc personal}
+{rfrench@\sc athena.mit.edu}, and a message is sent to
+\triple{\sc message}{\sc personal}{*}, he will not receive it.  Likewise, if
+a person is subscribing to
+\triple{\sc message}{\sc personal}{*}, and one is sent to \triple{\sc
+message}{\sc personal} {rfrench@\sc athena.mit.edu}, he will not
+receive it.  Subscriptions can be combined.  Thus if a person is
+subscribing to both of these triples, he will receive both messages.
+Note also that a person cannot subscribe to messages destined for
+users other than himself.  These limitations combine to prevent a user
+from receiving another user's personal messages.
+
+\subsubsection{Examples}
+\label{subscription-examples}
+
+A notice sent to \triple{\sc message}{\sc personal}{rfrench@\sc athena.mit.edu}
+will be received by user ``rfrench'' if he subscribes to:
+
+\ss
+\begin{description}
+\item \triple{\sc message}{\sc personal}{rfrench@\sc athena.mit.edu}
+\item \triple{\sc message}{*}{rfrench@\sc athena.mit.edu}
+\end{description}
+\ess
+
+\noindent But he would not receive it if he subscribed to:
+
+\ss
+\begin{description}
+\item \triple{\sc foobar}{\sc personal}{rfrench@\sc athena.mit.edu}
+\item \triple{\sc message}{\sc foobar}{rfrench@\sc athena.mit.edu}
+\item \triple{\sc message}{\sc personal}{*}
+\end{description}
+\ess
+
+Likewise, a notice sent to \triple{\sc filsrv}{\sc paris.mit.edu}{*}
+would be received by someone subscribing to:
+
+\ss
+\begin{description}
+\item \triple{\sc filsrv}{\sc paris.mit.edu}{*}
+\item \triple{\sc filsrv}{*}{*}
+\end{description}
+\ess
+
+\noindent But would not be received by someone subscribing to:
+
+\ss
+\begin{description}
+\item \triple{\sc filsrv}{\sc paris.mit.edu}{user@\sc athena.mit.edu}
+\item \triple{\sc filsrv}{*}{user@\sc athena.mit.edu}
+\end{description}
+\ess
+
+\subsubsection{Subscription Authorization}
+\label{subscription-authorization}
+
+It is possible for a notice to be authenticated using the Kerberos
+authentication system \cite{kerberos-paper}.  The method used to do this
+is described in \myref{authenticated-notices}, ``Sending Authenticated
+Notices.''  When a notice is authenticated, a
+\Zephyr\ server can perform a number of tests to determine if a user is
+allowed to send notices to or subscribe to messages from a particular
+class.  The lists which determine these restrictions are kept on the
+server machines, and may not be updated by users.  They are not
+available for inspection by users.
+
+Some of the restrictions that can be placed on a class are:
+
+\begin{itemize}
+\item Only specified users can send notices to this class
+\item Only specified users can subscribe to notices from this class
+\item Any notice sent to this class must be authenticated
+\item Any notice sent to this class must have an instance equal to the
+sender of the notice
+\end{itemize}
+
+A complete list of restrictions and how they are implemented is
+available in the \Zephyr\ design document \cite{zephyr-design}.
+
+\subsubsection{Default Subscriptions}
+\label{default-subscriptions}
+The Zephyr servers maintain a list of default subscriptions which are
+automatically added to all subscriptions at the first subscription
+request for a given port.  These subscriptions are intended to make sure
+that the Operations staff can easily notify all users.  If you wish to
+disable these subscriptions, see the section on ZUnsubscribeTo,
+\myref{ZUnsubscribeTo}.

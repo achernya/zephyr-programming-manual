@@ -1,0 +1,135 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/raw-notices.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/raw-notices.tex,v 2.0 1989/04/05 15:55:43 jtkohl Exp $
+%
+\subsection{Using Raw Notices}
+\label{raw-notices}
+
+It is occasionally useful to be able to transmit packets without
+having the library fill in missing information for you.  For example,
+the library will usually initialize the {\bf z_uid} and the
+authentication fields for you.  However, if you wanted to send a
+message with a specific unique ID, as is the case with an
+acknowledgment, you would not want the library to interfere.  The
+following routines allow an application to handle notices in their
+``raw'', or untouched, form.
+
+\subsubsection{ZFormatRawNotice}
+\label{ZFormatRawNotice}
+
+\template{Code_t}{ZFormatRawNotice}{notice, buffer, ret_len}
+\tline{ZNotice_t}{*notice}
+\tline{char}{**buffer}
+\tline{int}{*ret_len}
+\etemplate
+\prereq{ZInitialize}
+\errors{ZERR_PKTLEN, ZERR_HEADERLEN}
+
+The ZFormatRawNotice function performs identically to the
+ZFormatNotice function (\myref{ZFormatNotice}), except that no part of
+the notice is changed when it is formatted.  The notice in {\bf
+notice} is formatted into a packet and placed in a newly allocated
+buffer. The address of this buffer is returned in {\bf *buffer}.
+The length of the resulting packet is returned in {\bf *ret_len}.
+
+After a successful call to ZFormatRawNotice, the standard C library routine
+free() should be called with argument {\bf *buffer} when the caller is
+finished using the packet.
+
+\subsubsection{ZFormatSmallRawNotice}
+\label{ZFormatSmallRawNotice}
+
+\template{Code_t}{ZFormatSmallRawNotice}{notice, buffer, ret_len}
+\tline{ZNotice_t}{*notice}
+\tline{ZPacket_t}{buffer}
+\tline{int}{*ret_len}
+\etemplate
+\prereq{ZInitialize}
+\errors{ZERR_PKTLEN, ZERR_HEADERLEN}
+
+The ZFormatSmallRawNotice function performs identically to the
+ZFormatRawNotice function above, except that no packet fragmentation is
+allowed, and if the notice will not fit into a single ZPacket_t buffer,
+ZERR_PKTLEN is returned.  The caller must provide the packet buffer in
+{\bf buffer}.
+
+\subsubsection{ZFormatRawNoticeList}
+\label{ZFormatRawNoticeList}
+
+\template{Code_t}{ZFormatRawNoticeList}{notice, list, nitems, buffer,
+ret_len}
+\tline{ZNotice_t}{*notice}
+\tline{char}{*list[]}
+\tline{int}{nitems}
+\tline{char}{**buffer}
+\tline{int}{*ret_len}
+\etemplate
+\prereq{ZInitialize}
+\errors{ZERR_PKTLEN, ZERR_HEADERLEN}
+
+The ZFormatRawNoticeList function performs identically to the
+ZFormatNoticeList function (\myref{ZFormatNoticeList}), except that no
+part of the notice is changed when it is formatted.  The notice in {\bf
+notice} is formatted into a packet and placed in a newly allocated
+buffer. The address of this buffer is returned in {\bf *buffer}.  The
+body of the notice is take from the {\bf nitems} items in {\bf list},
+which are concatenated together with a NULL following each item.  The
+length of the resulting packet is returned in {\bf *ret_len}.
+
+After a successful call to ZFormatRawNoticeList, the standard C library routine
+free() should be called with argument {\bf *buffer} when the caller is
+finished using the packet.
+
+\subsubsection{ZFormatSmallRawNoticeList}
+\label{ZFormatSmallRawNoticeList}
+
+\template{Code_t}{ZFormatSmallRawNoticeList}{notice, list, nitems, buffer,
+ret_len}
+\tline{ZNotice_t}{*notice}
+\tline{char}{*list[]}
+\tline{int}{nitems}
+\tline{ZPacket_t}{buffer}
+\tline{int}{*ret_len}
+\etemplate
+\prereq{ZInitialize}
+\errors{ZERR_PKTLEN, ZERR_HEADERLEN}
+
+The ZFormatSmallRawNoticeList function performs identically to the
+ZFormatRawNoticeList function above, except that no packet fragmentation is
+allowed, and if the notice will not fit into a single ZPacket_t buffer,
+ZERR_PKTLEN is returned.  The caller must provide the packet
+buffer in {\bf buffer}.
+
+\subsubsection{ZSendRawNotice}
+\label{ZSendRawNotice}
+
+\template{Code_t}{ZSendRawNotice}{notice}
+\tline{ZNotice_t}{*notice}
+\etemplate
+\prereq{ZInitialize}
+\errors{UNIX errors, ZERR_PKTLEN, ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS,
+ZERR_QLEN}
+
+The ZSendRawNotice function performs identically to the ZSendNotice
+function (\myref{ZSendNotice}), except that no part of the notice is
+changed when it is formatted, and no authentication is performed.
+
+\subsubsection{ZSendRawList}
+\label{ZSendRawList}
+
+\template{Code_t}{ZSendRawList}{notice, list, nitems}
+\tline{ZNotice_t}{*notice}
+\tline{char}{*list[]}
+\tline{int}{nitems}
+\etemplate
+\prereq{ZInitialize}
+\errors{UNIX errors, ZERR_PKTLEN, ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS,
+ZERR_QLEN}
+
+The ZSendRawList function performs identically to the ZSendList
+function (\myref{ZSendList}), except that no part of the notice is
+changed when it is formatted, and no authentication is performed.
+
+
+

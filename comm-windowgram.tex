@@ -1,0 +1,97 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/comm-windowgram.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/comm-windowgram.tex,v 2.0 1989/04/05 15:50:20 jtkohl Exp $
+%
+\subsection{Communicating with the WindowGram Client}
+\label{comm-zwgc}
+
+The following sections describe control notices that can be
+sent to a WindowGram client to ask it to perform various functions.
+
+\subsubsection{Where to Send Notices}
+
+Notices should be sent to the WindowGram's port on the local machine.
+Thus the destination address should be set with code such as:
+
+\begin{code}
+    struct sockaddr_in newsin;
+
+    newsin = ZGetDestAddr();
+    newsin.sin_port = (unsigned short) ZGetWGPort();
+    ZSetDestAddr(&newsin);
+\end{code}
+(Of course, suitable error checking should be included.)
+
+\subsubsection{Available Commands}
+
+The following functions are available.  They are listed in the form
+[kind, class, instance, opcode].  The rest of the notice ({\em e.g.\/}
+the message body) has no effect on the requested action.
+
+\begin{itemize}
+\item {[UNSAFE, WG_CTL_CLASS, WG_CTL_USER, USER_REREAD]}: Reread the
+user's \filename{.zephyr.desc} file.
+\item {[UNSAFE, WG_CTL_CLASS, WG_CTL_USER, USER_SHUTDOWN]}: Save
+subscriptions, unsubscribe to all notices, and cease processing all
+incoming notices except a USER_STARTUP control notice.
+\item {[UNSAFE, WG_CTL_CLASS, WG_CTL_USER, USER_STARTUP]}: Re-subscribe
+to saved subscriptions, and continue processing incoming notices (this
+is only useful after a USER_SHUTDOWN request.).
+\end{itemize}
+
+\subsubsection{Sample Application}
+
+This application demonstrates sending a control notice to a WindowGram
+client to ask it to re-read the user's \filename{.zephyr.desc} file.  It
+initializes the library, changes the destination address to the
+WindowGram client's port, fills in the control notice, and sends it off.
+It does not wait for any acknowledgement.
+
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main()
+{
+    ZNotice_t notice;
+    struct sockaddr_in newsin;
+    Code_t retval;
+    int newport;
+
+    /* Initialize the library */
+    if ((retval = ZInitialize()) != ZERR_NONE) {
+        com_err("sample", retval, "while initializing");
+        exit (1);
+    }
+
+    /* Change the destination to be the user's WindowGram client */
+    newsin = ZGetDestAddr();
+    if ((newport = ZGetWGPort()) == -1) {
+        fprintf(stderr, "Can't find WindowGram port\n");
+        exit (1);
+    }
+    newsin.sin_port = (unsigned short) newport;
+    ZSetDestAddr(&newsin);
+
+    bzero((char *)&notice, sizeof(notice));
+    /* initialize the notice after zeroing the entire structure */
+    /* Fill in notice for a REREAD command */
+    notice.z_kind = UNSAFE;
+    notice.z_port = 0;
+    notice.z_class = WG_CTL_CLASS;
+    notice.z_class_inst = WG_CTL_USER;
+    notice.z_opcode = USER_REREAD;
+    notice.z_sender = 0;
+    notice.z_recipient = "";
+    notice.z_default_format = "";
+    notice.z_message = "";
+    notice.z_message_len = 0;
+
+    /* Send the command */
+    if ((retval = ZSendNotice(&notice, ZNOAUTH)) != ZERR_NONE) {
+        com_err("sample", retval, "while sending notice");
+        exit (1);
+    }
+    exit(0);
+}
+\end{code}

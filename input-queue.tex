@@ -1,0 +1,84 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/input-queue.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/input-queue.tex,v 2.0 1989/04/05 15:52:38 jtkohl Exp $
+%
+\subsection{Using the Input Queue}
+\label{input-queue}
+
+The \Zephyr\ library keeps a queue of notices as they are received.
+When a packet arrives, it is placed into the queue.  If the packet is
+part of a fragmented notice, the notice is reassembled as the pieces
+arrive.  When all fragments have been received, the count of complete
+messages is incremented.  If no fragments of an incomplete notice arrive
+during a fixed, short interval after the last fragment was received, all the
+stored fragments of that notice are discarded.  In this way resources
+are reclaimed if a failure occurs.
+
+The following functions allow an application to test the status of the
+input queue.
+
+\subsubsection{ZPending}
+\label{ZPending}
+
+\template{int}{ZPending}{}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{UNIX errors, ZERR_MAXQLEN, ZERR_EOF}
+
+The ZPending function places any newly received packets into the input
+queue, and then returns the total number of complete notices available
+in the queue.  The value -1 is returned if an error occurs, with the
+error code placed in the global variable {\bf errno}.
+
+\subsubsection{ZQLength}
+\label{ZQLength}
+
+\template{int}{ZQLength}{}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{None}
+
+The ZQLength function returns the total number of complete notices in
+the input queue.  No new packets are placed into the input queue.
+
+\subsubsection{ZPeekNotice}
+\label{ZPeekNotice}
+
+\template{Code_t}{ZPeekNotice}{notice, from}
+\tline{ZNotice_t}{*notice}
+\tline{struct sockaddr_in}{*from}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{UNIX errors, ZERR_NOPORT, ZERR_PKTLEN, ZERR_QLEN, ZERR_BADPKT,
+ZERR_VERS}
+
+The ZPeekNotice function ``peeks at'' the next notice in the input
+queue, and returns that notice.  It functions identically to
+ZReceiveNotice (\myref{ZReceiveNotice}), except that the notice is left
+in the input queue.
+
+After a successful return from the ZPeekNotice function,
+ZFreeNotice (\myref{ZFreeNotice}) should be called with argument {\bf
+notice} when the caller has finished using {\bf notice}.
+
+\subsubsection{ZPeekIfNotice}
+\label{ZPeekIfNotice}
+
+\template{Code_t}{ZPeekIfNotice}{notice, from, predicate, args}
+\tline{ZNotice_t}{*notice}
+\tline{struct sockaddr_in}{*from}
+\tline{int}{(*predicate)()}
+\tline{char}{*args}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{UNIX errors, ZERR_BADPKT, ZERR_VERS, ZERR_PKTLEN, ZERR_NOPORT,
+ZERR_QLEN}
+
+The ZPeekIfNotice function acts identically to the ZCheckIfNotice function
+(\myref{ZCheckIfNotice}), except that the notice is left in
+the input queue.
+
+After a successful return from the ZPeekIfNotice function,
+ZFreeNotice (\myref{ZFreeNotice}) should be called with argument {\bf
+notice} when the caller has finished using {\bf notice}.

@@ -1,0 +1,45 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/error-handling.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/error-handling.tex,v 2.0 1989/04/05 15:50:45 jtkohl Exp $
+%
+\subsection{Error Handling}
+\label{error-handling}
+
+Almost all routines in the \Zephyr\ library return an error
+code of type {\bf Code_t}.  This error code may be a UNIX
+error, a Kerberos error (if Kerberos authentication is enabled), or a
+\Zephyr\ error.  A {\bf Code_t} may be treated as an integer.  Each
+type of error is in a different numeric range (so that
+they do not interfere with each other).  This is accomplished using the
+{\bf com_err} library.  If a routine succeeds, it will return the
+status ZERR_NONE, which is defined to be zero.  A complete list of
+\Zephyr\ error codes and their meanings can be found in
+\myref{error-codes}, ``Error Codes.''
+
+The following routines provided by the com_err library may be useful.
+A full description of the features of the com_err library may be
+found in the com_err design document \cite{comerr-paper}.
+
+\nwtemplate{char *}{error_message}{code}
+\nwtline{int}{code}
+\nwetemplate
+
+Return a string containing the error message associated with error
+{\bf code}.
+
+\nwtemplate{void}{com_err}{whoami, code, message}
+\nwtline{char}{*whoami}
+\nwtline{int}{code}
+\nwtline{char}{*message}
+\nwetemplate
+
+Print an error message of the form:
+
+{\tt $<$whoami$>$:\ $<$error$>$ $<$message$>$}
+
+\noindent Thus if {\bf whoami} were ``zwrite'', {\bf code} were the
+error code for ``Internal error'', and {\bf message} were ``while sending
+notice'', the error message printed would be:
+
+{\tt zwrite:\ Internal error while sending notice}

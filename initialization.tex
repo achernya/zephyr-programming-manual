@@ -1,0 +1,48 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/initialization.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/initialization.tex,v 2.0 1989/04/05 15:52:35 jtkohl Exp $
+%
+\subsection{Initialization}
+\label{initialization}
+
+\subsubsection{ZInitialize}
+\label{ZInitialize}
+
+\template{Code_t}{ZInitialize}{}
+\etemplate
+\prereq{None}
+\errors{ZERR_HMPORT}
+
+The \Zephyr\ library must be initialized before it can be used.
+ZInitialize performs this function.  It caches information such as the
+user's username, the host's name, and the HostManager's port number to
+speed up future operations, and initializes other internal state
+variables.  If the port for the HostManager is not found in
+\filename{/etc/services}, ZERR_HMPORT is returned.
+
+\subsubsection{ZOpenPort}
+\label{ZOpenPort}
+
+\template{Code_t}{ZOpenPort}{port}
+\tline{unsigned short}{*port}
+\etemplate
+\prereq{ZInitialize}
+\errors{UNIX errors, ZERR_PORTINUSE}
+
+Before the \Zephyr\ library can perform any operations that require
+the sending or receiving of notices, a {\em port\/} must be allocated
+for these transactions.  The ZOpenPort function accomplishes this.  It
+should be called before any of the functions which send or receive
+notices.  There are three ways to call ZOpenPort:
+
+\begin{itemize}
+\item{With {\bf port} NULL:}
+A port is allocated randomly.
+\item{With {\bf port} pointing to an integer containing 0:}
+A port is allocated randomly, and {\bf *port} is set to the port
+number.
+\item{With {\bf port} pointing to a a non-zero integer:}
+The port {\bf *port} is allocated, if possible.  If {\bf *port} cannot
+be allocated, ZERR_PORTINUSE is returned.
+\end{itemize}

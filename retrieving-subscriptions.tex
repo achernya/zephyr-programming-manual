@@ -1,0 +1,148 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/retrieving-subscriptions.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/retrieving-subscriptions.tex,v 2.0 1989/04/05 15:56:45 jtkohl Exp $
+%
+\subsection{Retrieving Subscriptions}
+\label{retrieving-subscriptions}
+
+The following functions allow an application to retrieve information
+about the user's current subscriptions or the system default
+subscriptions (\myref{subscription}).
+
+\subsubsection{ZRetrieveSubscriptions}
+\label{ZRetrieveSubscriptions}
+
+\template{Code_t}{ZRetrieveSubscriptions}{port, nsubs}
+\tline{unsigned short}{port}
+\tline{int}{*nsubs}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZRetrieveSubscriptions function queries the server for the current
+subscriptions for port {\bf port}.  The number of subscriptions
+retrieved is returned in {\bf *nsubs}.  If {\bf port} is zero, the
+port of the current application is substituted.  The ZGetWGPort
+function (\myref{ZGetWGPort}) can be used to return the port number
+associated with the user's WindowGram Client.
+
+\subsubsection{ZRetrieveDefaultSubscriptions}
+\label{ZRetrieveDefaultSubscriptions}
+
+\template{Code_t}{ZRetrieveDefaultSubscriptions}{nsubs}
+\tline{int}{*nsubs}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZRetrieveDefaultSubscriptions function queries the server for the
+default subscriptions.  The number of subscriptions retrieved is
+returned in {\bf *nsubs}.
+
+\subsubsection{ZGetSubscriptions}
+\label{ZGetSubscriptions}
+
+\template{Code_t}{ZGetSubscriptions}{subscription, numsub}
+\tline{ZSubscription_t}{*subscription}
+\tline{int}{*numsub}
+\etemplate
+\prereq{ZInitialize, ZRetrieveSubscriptions or ZRetrieveDefaultSubscriptions}
+\errors{ZERR_NOSUBSCRIPTIONS, ZERR_NOMORESUBSCRIPTIONS}
+
+The ZGetSubscriptions function returns the next subscription entries
+that were retrieved with ZRetrieveSubscriptions or
+ZRetrieveDefaultSubscriptions.  {\bf *numsub} should initially contain
+the maximum number of subscriptions that can fit in the {\bf
+subscription} buffer.  On return, {\bf *numsub} will contain the
+number of entries actually returned.  Subsequent calls to
+ZGetSubscriptions will return additional subscription entries if
+possible.  As the pointers in the ZSubscription_t structure may point
+into ``private'' storage filled in by ZRetrieveSubscriptions or
+ZRetrieveDefaultSubscriptions, they may changed on
+future calls to these functions.  Thus they should be copied into other
+storage by the client if necessary.
+
+\subsubsection{ZFlushSubscriptions}
+\label{ZFlushSubscriptions}
+
+\template{Code_t}{ZFlushSubscriptions}{}
+\etemplate
+\prereq{ZInitialize, ZRetrieveSubscriptions or ZRetrieveDefaultSubscriptions}
+\errors{None}
+
+The ZFlushSubscriptions function frees any storage allocated by
+the ZRetrieveSubscriptions or ZRetrieveDefaultSubscriptions functions.
+This will be automatically performed one of these functions is called again.
+
+\subsubsection{Sample Application}
+
+This application demonstrates use of ZGeWGPort, ZRetrieveSubscriptions
+and ZRetrieveDefaultSubscriptions.  It initializes the library,
+retrieves the WindowGram port (printing an error if it is not able to
+retrieve the port number), retrieves and prints the subscriptions, and
+finally retrieves and prints the default subscriptions.
+
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main()
+{
+    ZSubscription_t subscription;
+    Code_t retval;
+    int wgport, totalsubs;
+
+    /* Initialize the library */
+    if ((retval = ZInitialize()) != ZERR_NONE) {
+        com_err("sample", retval, "while initializing");
+        exit (1);
+    }
+
+    wgport = ZGetWGPort();
+
+    if (wgport == -1)
+        printf("Can't retrieve current subscriptions\n");
+    else {
+        /* retrieve WindowGram's subscriptions */
+        if ((retval = ZRetrieveSubscriptions((unsigned short)wgport,
+            &totalsubs)) != ZERR_NONE) {
+               com_err("sample", retval, "while retrieving subscriptions");
+               exit (1);
+        }
+        printf("Your current subscriptions:\n");
+        print_subs(totalsubs);
+    }
+
+    /* retrieve default subscriptions */
+    if ((retval = ZRetrieveDefaultSubscriptions(&totalsubs)) != ZERR_NONE) {
+        com_err("sample", retval,
+            "while retrieving default subscriptions");
+        exit (1);
+    }
+    printf("Default subscriptions:\n");
+    print_subs(totalsubs);
+    exit(0);
+}
+
+print_subs(totalsubs)
+    int totalsubs;
+{
+    ZSubscription_t subscription;
+    Code_t retval;
+    int i, numsubs;
+
+    for (i=0; i<totalsubs; i++) {
+        numsubs = 1;
+        if ((retval = ZGetSubscriptions(&subscription,
+            &numsubs)) != ZERR_NONE) {
+                com_err("sample", retval, "while getting subscription");
+                exit (1);
+        }
+        printf("<%s,%s,%s>\n", subscription.class, subscription.classinst,
+            subscription.recipient);
+    }
+}
+
+\end{code}

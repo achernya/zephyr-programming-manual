@@ -1,0 +1,161 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/receiving-notices.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/receiving-notices.tex,v 2.0 1989/04/05 15:55:53 jtkohl Exp $
+%
+\subsection{Receiving Notices}
+\label{receiving-notices}
+
+The following functions are used to receive and interpret incoming
+notices.
+
+\subsubsection{ZReceiveNotice}
+\label{ZReceiveNotice}
+
+\template{Code_t}{ZReceiveNotice}{notice, from}
+\tline{ZNotice_t}{*notice}
+\tline{struct sockaddr_in}{*from}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{UNIX errors, ZERR_NOPORT, ZERR_PKTLEN, ZERR_QLEN, ZERR_BADPKT,
+ZERR_VERS}
+
+The ZReceiveNotice function reads and removes the next notice from the input
+queue.  If there are no notices in the queue, it blocks until a notice
+arrives. A buffer to contain the notice is allocated automatically.
+{\bf notice} contains the parsed packet.  All
+fields of {\bf notice} are filled in as appropriate.  The address from
+which the notice was received is placed in {\bf *from} if {\bf from}
+is non-NULL.
+
+After a successful return from the ZReceiveNotice function,
+ZFreeNotice (\myref{ZFreeNotice}) should be called with argument {\bf
+notice} when the caller has finished using {\bf notice}.
+
+\subsubsection{Receiving Binary Data}
+\label{receiving-binary}
+
+\paragraph{ZReadAscii}
+\label{ZReadAscii}
+
+\template{Code_t}{ZReadAscii}{buffer, buffer_len, field, field_len}
+\tline{char}{*buffer}
+\tline{int}{buffer_len}
+\tline{char}{*field}
+\tline{int}{field_len}
+\etemplate
+\prereq{None}
+\errors{ZERR_BADFIELD}
+
+The ZReadAscii function reverses the action of the ZMakeAscii
+function (\myref{ZMakeAscii}).  It takes the {\bf field_len} bytes in
+{\bf field}, and converts them back into binary form in {\bf buffer}.
+{\bf buffer_len} is the number of bytes available in {\bf buffer}.
+ZERR_BADFIELD is returned if {\bf field} contains data in an improper
+format or the data will not fit into the buffer.
+
+\subsubsection{Receiving Authenticated Notices}
+\label{receiving-authenticated}
+
+When a notice is received, there is no way to immediately discern if
+it is authenticated or not (the {\bf z_auth} field in the ZNotice_t
+structure is not necessarily accurate when a notice is received).  The
+ZCheckAuthentication function is provided to verify or deny the
+authenticity of a notice.
+
+\paragraph{ZCheckAuthentication}
+\label{ZCheckAuthentication}
+
+\template{Code_t}{ZCheckAuthentication}{notice, from}
+\tline{ZNotice_t}{*notice}
+\tline{struct sockaddr_in}{*from}
+\etemplate
+\prereq{ZInitialize, ZReceiveNotice}
+\errors{None}
+
+The ZCheckAuthentication function verifies the Kerberos authentication
+in {\bf notice}.  It returns ZAUTH_NO if the notice is not authentic,
+ZAUTH_FAILED if the notice claimed to be authentic but the authenticity
+could not be verified, and ZAUTH_YES if the notice was verified to be
+authentic. {\bf *from} should contain the the address from which the
+notice was received.
+
+When Kerberos is enabled, this verification uses Kerberos authentication
+information.  When Kerberos is disabled, notices claiming to be
+authentic cause ZCheckAuthentication to return ZAUTH_YES, and notices
+not claiming to be authentic cause ZCheckAuthentication to return
+ZAUTH_NO.
+
+\subsubsection{Sample Application}
+
+This application demonstrates use of ZOpenPort, ZSubscribeTo,
+ZReceiveNotice, ZCheckAuthentication and ZFreeNotice.  It initializes
+the library, opens a port, subscribes to messages, and then loops,
+printing every notice it receives.  The program never terminates
+normally, so it does not cancel its subscriptions.  {\bf NOTE}: any
+messages which contain NULL's in them will not be printed in their
+entirety, due to the way printf() handles {\bf \%s} arguments.
+
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main()
+{
+    ZSubscription_t sub;
+    ZNotice_t notice;
+    struct sockaddr_in from;
+    Code_t retval;
+
+    /* Initialize the library */
+    if ((retval = ZInitialize()) != ZERR_NONE) {
+        com_err("sample", retval, "while initializing");
+        exit (1);
+    }
+
+    /* Open a port, so that ZSubscribeTo has a port to use */
+    if ((retval = ZOpenPort((int *) 0)) != ZERR_NONE) {
+        com_err("sample", retval, "while opening port");
+        exit (1);
+    }
+
+    /* Subscribe this client to personal messages */
+
+    sub.class = "MESSAGE";
+    sub.classinst = "PERSONAL";
+    sub.recipient = ZGetSender();
+
+    if ((retval = ZSubscribeTo(&sub, 1, 0)) != ZERR_NONE) {
+        com_err("sample", retval, "while subscribing");
+        exit (1);
+    }
+
+    /* Loop and accept incoming messages and print them out */
+
+    printf("Now accepting messages...\n");
+
+    for (;;) {
+        if ((retval = ZReceiveNotice(&notice, &from)) != ZERR_NONE) {
+                com_err("sample", retval, "while receiving notice");
+                exit (1);
+        }
+        retval = ZCheckAuthentication(&notice, &from);
+        switch (retval) {
+        case ZAUTH_YES:
+            printf("** Authenticated message! **\n");
+            break;
+        case ZAUTH_NO:
+            printf("** Unauthenticated message! **\n");
+            break;
+        case ZAUTH_FAILED:
+            printf("** Forged message! **\n");
+            break;
+        }
+        printf("Message from: %s\n", notice.z_sender);
+        printf("%s\n", notice.z_message);
+        ZFreeNotice(&notice);
+    }
+
+    /* We really should cancel subscriptions when we're finished,
+       but this program never finishes, so... */
+}
+\end{code}

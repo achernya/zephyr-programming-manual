@@ -1,0 +1,59 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/acknowledgment-format.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/acknowledgment-format.tex,v 2.0 1989/04/05 15:49:18 jtkohl Exp $
+%
+\subsection{Acknowledgment Structure}
+\label{acknowledgment-structure}
+
+An acknowledgment is a notice sent by either the HostManager, a
+server, or a receiving client to indicate that a notice has been
+received at some step in the notice relay process.  The acknowledgment
+is identical to the original notice, except for the following
+differences:
+
+\begin{itemize}
+\item The {\bf z_kind} field of the notice will be changed as
+follows:
+\begin{itemize}
+\item If the notice is a HostManager-to-sending-client acknowledgment,
+{\bf z_kind} will be set to HMACK.
+\item If the notice is a server-to-HostManager acknowledgment,
+{\bf z_kind} will be set to either SERVACK or SERVNAK depending on
+whether the notice was handled successfully.
+\item If the notice is a receiving-client-to-server acknowledgment,
+{\bf z_kind} will be set to CLIENTACK.
+\end{itemize}
+\item Since the only purpose of an acknowledgment is to indicate that a
+notice has been received successfully, it does not need to contain all
+of the information included in the original notice.  Specifically, the
+message field and the authenticator fields are left empty in most cases.
+\end{itemize}
+
+The preferred method for a client to determine which original notice
+the acknowledgment is referencing is to use the {\bf z_uid} field.
+The {\bf z_uid} of the acknowledgment will be the same as the {\bf
+z_uid} of the original notice.  Thus this field is not a per-packet
+unique ID, but a per-transaction unique ID.
+
+When a server acknowledges a notice to the HostManager, it includes
+some additional information in the message body in place of any
+message that was there before.  This information takes the form of a
+single, NULL-terminated string, as follows:
+
+\begin{itemize}
+\item {\bf ZSRVACK_SENT}: The notice was sent to at least one
+recipient.  This does not necessarily indicate that the recipient
+received the notice, but is a good indication that {\em someone\/} is
+subscribing to the class and instance of the notice.
+\item {\bf ZSRVACK_NOTSENT}: The notice was not sent to any
+recipients.  This means that no one is subscribing to the class and
+instance of the notice.
+\item {\bf ZSRVACK_FAIL}: The processing of the notice failed for
+some reason, most likely because of a lack of proper authentication.
+This may also be caused by an attempt to send a notice to a restricted
+class which the user is not authorized to send to.
+\end{itemize}
+
+More information about processing acknowledgments can be found in
+\myref{receiving-acknowledgments}.

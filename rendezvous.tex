@@ -1,0 +1,27 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/rendezvous.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/rendezvous.tex,v 2.0 1989/04/05 15:56:37 jtkohl Exp $
+%
+\subsection{Using \Zephyr\ as a Rendezvous Service}
+\label{rendezvous-service}
+
+Occasionally there are times when an application needs \Zephyr's
+ability to find and contact users, but needs to send the user a large
+quantity of information instead of a single message.\footnote{A good
+example of this is Project Athena's On-Line Consulting System, which
+needs to send entire conversations between users.}  In this case,
+\Zephyr's notice sending functions (ZSendNotice, {\em etc.\/}) prove
+inefficient because of the overhead involved in packet fragmentation and
+reassembly, as well as an acknowledgement scheme designed for simple,
+single-packet transactions.  Instead of using \Zephyr\ for the
+transmission of the information, it can be used as a ``rendezvous
+service.''
+
+In this case, \Zephyr's notice sending capabilities can be used to
+transmit a host and port number (as part of the message body in a
+notice).  Once these are received, a more efficient TCP/IP connection
+can be established for the actual data transmission.  The IPC tutorial
+(\cite{ipc-tutorial}) gives an introduction describing how to establish
+a TCP/IP connection under 4.3BSD.
+

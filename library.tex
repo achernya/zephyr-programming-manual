@@ -1,0 +1,47 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/library.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/library.tex,v 2.0 1989/04/05 15:53:39 jtkohl Exp $
+%
+\subsection{The Zephyr Library and Include Files}
+\label{library-include}
+
+Applications that want to use the features of \Zephyr\ must link
+against the \Zephyr\ library and the com_err library, and possibly the
+Kerberos library and DES library.  The \Zephyr\ library contains the functions
+defined in the later sections of this document.  It is usually called
+{\tt libzephyr.a}, and may be included in an application by specifying
+{\tt -lzephyr} on the compile or link line.  
+
+The com_err library contains error-reporting functions (See the com_err
+design document \cite{comerr-paper}.).  It is usually called {\tt
+libcom_err.a}, and may be included in an application by specifying {\tt
+-lcom_err} on the compile or link line.
+
+The Kerberos library contains Kerberos functions.  It is usually called
+{\tt libkrb.a}, and may be included in an application by specifying
+{\tt -lkrb} on the compile or link line.
+
+The DES library contains DES functions.  It is usually called
+{\tt libdes.a}, and may be included in an application by specifying
+{\tt -ldes} on the compile or link line.
+
+The main \Zephyr\ include file, {\tt zephyr.h}, must also be included
+in all source files that use \Zephyr\ functions.  It contains many
+\Zephyr-related definitions, and will automatically include
+zephyr_err.h, the file that contains the error code definitions, plus
+the system include files $<$errno.h$>$, $<$sys/types.h$>$,
+$<$netinet/in.h$>$, $<$sys/time.h$>$, and $<$stdio.h$>$, and if Kerberos
+is enabled, $<$krb.h$>$.
+{\tt zephyr.h} may be included by specifying the line {\tt \#include
+$<$zephyr/zephyr.h$>$} in the source file.
+
+In order for your programs to interact properly with the \Zephyr\
+library provided on Project Athena, you {\em must\/} specify the {\tt
+-DKERBEROS} option to the C compiler when compiling your code.
+
+\subsubsection{Naming conventions}
+\label{naming-conventions}
+All routines internal to the Zephyr library are named beginning with
+``Z_''.  All routines intended to be used by applications programmers are
+named beginning with ``Z'' and do not contain any underscores (_).

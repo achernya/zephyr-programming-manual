@@ -1,0 +1,254 @@
+% Copyright (c) 1988 Massachusetts Institute of Technology
+%	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/packets.tex,v $
+%	$Author: jtkohl $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/packets.tex,v 2.0 1989/04/05 15:55:13 jtkohl Exp $
+%
+\subsection{Using Packets}
+\label{using-packets}
+
+While notices, in the guise of ZNotice_t structures, are the objects
+most frequently manipulated by applications, another representation,
+the ``packet'', is available.  A packet is a single buffer which
+contains all of the information of a ZNotice_t structure.  The packet
+is what is transmitted and received over the network, and is
+broken down into its constituent fields to become a ZNotice_t
+structure.
+
+The following functions are provided for applications that want to
+manipulate or store packets directly.  This may be useful since
+packets are generally easier to store than ZNotice_t structures.\footnote{The
+strings in a ZNotice_t structure always contain pointers into the
+original packet; thus they must stay together.  However, a packet can
+stand on its own and be parsed into a ZNotice_t structure when
+necessary.}
+
+See \myref{sending-notices} for a description of what fields in a notice
+need to be initialized before using the following routines.
+
+\subsubsection{ZFormatNotice}
+\label{ZFormatNotice}
+
+\template{Code_t}{ZFormatNotice}{notice, buffer, ret_len, cert_routine}
+\tline{ZNotice_t}{*notice}
+\tline{char}{**buffer}
+\tline{int}{*ret_len}
+\tline{int}{(*cert_routine)()}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL}
+
+The ZFormatNotice function takes {\bf notice} and formats it into a
+packet.  The packet is stored in a newly allocated buffer.  The address of
+this buffer is returned in {\bf *buffer}.  The length of the resulting
+packet is returned in {\bf *ret_len}.  {\bf cert_routine} is called, if
+non-NULL, as described in \myref{authenticated-notices}, to authenticate
+the notice and place authentication information into the packet.
+
+After a successful call to ZFormatNotice, the standard C library routine
+free() should be called with argument {\bf *buffer} when the caller is
+finished using the packet.
+
+\subsubsection{ZFormatNoticeList}
+\label{ZFormatNoticeList}
+
+\template{Code_t}{ZFormatNoticeList}{notice, list, nitems, buffer,
+ret_len, cert_routine}
+\tline{ZNotice_t}{*notice}
+\tline{char}{*list[]}
+\tline{int}{nitems}
+\tline{char}{**buffer}
+\tline{int}{*ret_len}
+\tline{int}{(*cert_routine)()}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL}
+
+The ZFormatNoticeList function is a hybrid between the ZFormatNotice
+function (\myref{ZFormatNotice}) and the ZSendList function
+(\myref{ZSendList}).  It formats the notice into a newly allocated packet like
+ZFormatNotice, but the message body comes from the {\bf nitems} fields
+of {\bf list}.  The fields are concatenated together with a NULL after
+each field.
+
+After a successful call to ZFormatNoticeList, the standard C library routine
+free() should be called with argument {\bf *buffer} when the caller is
+finished using the packet.
+
+\subsubsection{ZSendPacket}
+\label{ZSendPacket}
+
+\template{Code_t}{ZSendPacket}{packet, len, waitforack}
+\tline{char}{*packet}
+\tline{int}{len}
+\tline{int}{waitforack}
+\etemplate
+\prereq{ZInitialize}
+\errors{UNIX errors, ZERR_ILLVAL, ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS,
+ZERR_PKTLEN, ZERR_QLEN}
+
+The ZSendPacket function simply transmits the {\bf len} byte long
+packet in {\bf packet} to the current destination address.  If the
+{\bf waitforack} argument is non-zero, it 
+will wait until it receives a HostManager acknowledgment before returning.
+
+\subsubsection{ZReceivePacket}
+\label{ZReceivePacket}
+
+\template{Code_t}{ZReceivePacket}{buffer, ret_len, from}
+\tline{ZPacket_t}{buffer}
+\tline{int}{*ret_len}
+\tline{struct sockaddr_in}{*from}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{UNIX errors, ZERR_NOPORT, ZERR_PKTLEN, ZERR_QLEN}
+
+The ZReceivePacket function reads and removes the next complete packet from the
+input queue and returns it in {\bf buffer}, which should be the standard
+Z_MAXPKTLEN bytes long.  The actual size of the received packet is returned in
+{\bf *ret_len}, and the address from which the packet was received is
+returned in {\bf *from}.  If the next complete packet is larger than
+Z_MAXPKTLEN, ZERR_PKTLEN is returned.
+If you need to use the packet representation of a notice larger than
+Z_MAXPTKLEN, use ZReceiveNotice (\myref{ZReceiveNotice}) and access the
+{\bf z_packet} field of the notice.
+
+\subsubsection{ZPeekPacket}
+\label{ZPeekPacket}
+
+\template{Code_t}{ZPeekPacket}{buffer, ret_len, from}
+\tline{char}{**buffer}
+\tline{int}{*ret_len}
+\tline{struct sockaddr_in}{*from}
+\etemplate
+\prereq{ZInitialize, ZOpenPort}
+\errors{UNIX errors, ZERR_NOPORT, ZERR_PKTLEN, ZERR_QLEN, ZERR_BADPKT,
+ZERR_VERS}
+
+The ZPeekPacket function ``peeks at'' the next packet in the input
+queue.  The packet is placed in a newly allocated buffer.  The address
+of the buffer is returned in {\bf *buffer}.  The size of the received
+packet is returned in {\bf *ret_len}, and the address from which the
+packet was received is returned in {\bf *from}.  The packet is not
+removed from the input queue.
+
+After a successful call to ZPeekPacket, the standard C library routine
+free() should be called with argument {\bf *buffer} when the caller is
+finished using the packet.
+
+\subsubsection{ZParseNotice}
+\label{ZParseNotice}
+
+\template{Code_t}{ZParseNotice}{buffer, buffer_len, notice}
+\tline{char}{*buffer}
+\tline{int}{buffer_len}
+\tline{ZNotice_t}{*notice}
+\etemplate
+\prereq{ZInitialize}
+\errors{ZERR_BADPKT, ZERR_VERS}
+
+The ZParseNotice function breaks a packet down into its constituent
+fields, and builds a ZNotice_t structure.  {\bf buffer} contains the
+{\bf buffer_len} byte long packet to be parsed.  The resulting notice is
+returned in {\bf *notice}.
+
+\subsubsection{Sample Application}
+
+This application demonstrates use of ZFormatNotice and ZParseNotice.  It
+initializes the library, fills in a notice, formats it, prints the
+formatted representation, parses the notice, prints the parsed
+notice, and frees the allocated storage.
+
+\begin{code}
+#include <zephyr/zephyr.h>
+
+main()
+{
+    ZNotice_t notice, newnotice;
+    char *buffer;
+    int buffer_len;
+    int retval;
+
+    /* Initialize the library */
+    if ((retval = ZInitialize()) != ZERR_NONE) {
+        com_err("sample", retval, "while initializing");
+        exit(1);
+    }
+
+    bzero((char *)&notice, sizeof(notice));
+    /* initialize the notice after zeroing the entire structure */
+    notice.z_kind = ACKED;
+    notice.z_port = 0;  /* Will be filled in by HostManager */
+    notice.z_class = "MESSAGE";
+    notice.z_class_inst = "PERSONAL";
+    notice.z_opcode = "";
+    /* The sender will get filled in by the library if 0 */
+    notice.z_sender = (char *)NULL;
+    notice.z_recipient = ZGetSender(); /* myself */
+    notice.z_default_format = "This is the default format\n$1";
+
+    notice.z_message = "Hello - This is an example!";
+    /* Make sure we include the trailing NULL in the length */
+    notice.z_message_len = strlen(notice.z_message)+1;
+
+    /* Format the notice */
+    if ((retval = ZFormatNotice(&notice, &buffer, &buffer_len, ZNOAUTH))
+        != ZERR_NONE) {
+        com_err("sample", retval, "while formatting notice");
+        exit(1);
+    }
+
+    /* print the formatted packet.
+       use write() here so that the entire buffer is printed.  printf() would
+       stop at the first NULL. 
+       Unfortunately, however, the NULL's are normally invisible unless the
+       output is piped through /bin/cat -v */
+    write(1, buffer, buffer_len);
+
+    /* Parse the notice */
+    if ((retval = ZParseNotice(buffer, buffer_len, &newnotice)) != ZERR_NONE) {
+        com_err("sample", retval, "while parsing notice");
+        exit(1);
+    }
+    /* Print the fields in the notice */
+    printf("\nversion = '%s'\nz_time = %d,%d\nz_port = %u\nz_auth = %d\n\
+z_authent_len = %d\nz_ascii_authent = '%s'\nz_class = '%s'\n\
+z_class_inst = '%s'\nz_opcode = '%s'\nz_sender = '%s'\nz_recipient = '%s'\n\
+z_default_format = '%s'\nz_multinotice = '%s'\nz_checksum = %lu\n\
+z_num_other_fields = %d\nz_other_fields[0] = '%s'\nz_other_fields[1] = '%s'\n\
+z_other_fields[2] = '%s'\nz_other_fields[3] = '%s'\n\
+z_other_fields[4] = '%s'\nz_other_fields[5] = '%s'\n\
+z_other_fields[6] = '%s'\nz_other_fields[7] = '%s'\n\
+z_other_fields[8] = '%s'\nz_other_fields[9] = '%s'\n\
+z_message_len = %d\nz_message = '%s'\n",
+           newnotice.z_version,
+           newnotice.z_time.tv_sec, newnotice.z_time.tv_usec,
+           newnotice.z_port,
+           newnotice.z_auth,
+           newnotice.z_authent_len,
+           newnotice.z_ascii_authent,
+           newnotice.z_class,
+           newnotice.z_class_inst,
+           newnotice.z_opcode,
+           newnotice.z_sender,
+           newnotice.z_recipient,
+           newnotice.z_default_format,
+           newnotice.z_multinotice,
+           newnotice.z_checksum,
+           newnotice.z_num_other_fields,
+           newnotice.z_other_fields[0],
+           newnotice.z_other_fields[1],
+           newnotice.z_other_fields[2],
+           newnotice.z_other_fields[3],
+           newnotice.z_other_fields[4],
+           newnotice.z_other_fields[5],
+           newnotice.z_other_fields[6],
+           newnotice.z_other_fields[7],
+           newnotice.z_other_fields[8],
+           newnotice.z_other_fields[9],
+           newnotice.z_message_len,
+           newnotice.z_message);
+    /* Free storage allocated by ZFormatNotice */
+    free(buffer);
+    exit(0);
+}
+\end{code}
