@@ -1,10 +1,14 @@
 % Copyright (c) 1988 Massachusetts Institute of Technology
 %	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/library.tex,v $
 %	$Author: jtkohl $
-%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/library.tex,v 2.0 1989/04/05 15:53:39 jtkohl Exp $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/library.tex,v 2.1 1989/06/29 16:39:02 jtkohl Exp $
 %
 \subsection{The Zephyr Library and Include Files}
 \label{library-include}
+% what a gross hack: this is to make the _ appear; they don't in the
+% Courier fonts (PostScript)
+\font\twlttreal  = cmtt12               % typewriter
+    \hyphenchar\twlttreal = -1         %  suppress hyphenation in \tt font
 
 Applications that want to use the features of \Zephyr\ must link
 against the \Zephyr\ library and the com_err library, and possibly the
@@ -14,9 +18,9 @@ defined in the later sections of this document.  It is usually called
 {\tt -lzephyr} on the compile or link line.  
 
 The com_err library contains error-reporting functions (See the com_err
-design document \cite{comerr-paper}.).  It is usually called {\tt
+design document \cite{comerr-paper}.).  It is usually called {\tt \twlttreal
 libcom_err.a}, and may be included in an application by specifying {\tt
--lcom_err} on the compile or link line.
+\twlttreal -lcom_err} on the compile or link line.
 
 The Kerberos library contains Kerberos functions.  It is usually called
 {\tt libkrb.a}, and may be included in an application by specifying
