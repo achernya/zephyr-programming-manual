@@ -1,7 +1,7 @@
 % Copyright (c) 1988 Massachusetts Institute of Technology
 %	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscribing.tex,v $
 %	$Author: jtkohl $
-%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscribing.tex,v 2.1 1989/05/05 16:46:50 jtkohl Exp $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscribing.tex,v 2.2 1989/06/29 16:20:33 jtkohl Exp $
 %
 \subsection{Subscribing to Notices}
 \label{subscribing}
@@ -122,7 +122,7 @@ subscribe on behalf of the WindowGram client.
 
 The ZGetWGPort function returns the port number associated with the
 user's WindowGram client.  It does this by examining the WGFILE
-environment variable, and reading the file \filename{/tmp/\$WGFILE}.
+environment variable, and reading the file named by that variable.
 If WGFILE is not set, \filename{/tmp/wg.{\em uid\/}}, where uid is the
 UNIX user ID of the user, is examined instead.  If neither file could be
 found, -1 is returned.
