@@ -1,7 +1,7 @@
 % Copyright (c) 1988 Massachusetts Institute of Technology
 %	$Source: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscribing.tex,v $
 %	$Author: jtkohl $
-%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscribing.tex,v 2.0 1989/04/05 15:57:57 jtkohl Exp $
+%	$Header: /tmp/git-rcsimport-Ge1GfW1M7y/rcs/subscribing.tex,v 2.1 1989/05/05 16:46:50 jtkohl Exp $
 %
 \subsection{Subscribing to Notices}
 \label{subscribing}
@@ -31,12 +31,36 @@ has the following fields:
 ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
 
 The ZSubscribeTo function attempts to inform the \Zephyr\ servers that
-subscriptions for the indicated {\bf port} on the current host should
-be added.  The subscriptions are listed as class/instance/recipient
-triples in the {\bf sublist} array.  {\bf nitems} is the number of
-entries in the {\bf sublist} array.  {\bf port} will usually be the
-port number of the current application.  If {\bf port} is 0, the
-port number of the current application is substituted.
+subscriptions for the indicated {\bf port} on the current host should be
+added.  The subscriptions are listed as class/instance/recipient triples
+in the {\bf sublist} array.  {\bf nitems} is the number of entries in
+the {\bf sublist} array.  {\bf port} will usually be the port number of
+the current application.  If {\bf port} is 0, the port number of the
+current application is substituted.  If this request registers the first
+subscriptions for the specified {\bf port}, the resulting subscriptions
+maintained by the server are the union of the default subscriptions (see
+\myref{default-subscriptions}) and the subscriptions specified in {\bf
+sublist}.  If this request supplements previously registered
+subscriptions, this function {\em will not remove any} of those
+subscriptions (which may include default subscriptions).
+
+\template{Code_t}{ZSubscribeToSansDefaults}{sublist, nitems, port}
+\tline{ZSubscription_t}{sublist[]}
+\tline{int}{nitems}
+\tline{unsigned short}{port}
+\etemplate
+\prereq{ZInitialize}
+\errors{Kerberos errors, UNIX errors, ZERR_PKTLEN, ZERR_ILLVAL,
+ZERR_HMDEAD, ZERR_BADPKT, ZERR_VERS, ZERR_QLEN}
+
+The ZSubscribeToSansDefaults function works identically to the the
+ZSubscribeTo function (above), but requests the server not to add the default
+subscriptions for the specified {\bf port}.  The omission of default
+subscriptions will only work properly if there are no subscriptions
+registered for the specified {\bf port} before this function is called.
+If this request supplements previously registered subscriptions, this
+function {\em will not remove any} of those subscriptions (which may
+include default subscriptions).
 
 \subsubsection{ZUnsubscribeTo}
 \label{ZUnsubscribeTo}
