@@ -1,0 +1,60 @@
+% Utility stuff from Tim Shepard (shep@ptt.lcs.mit.edu)
+%
+% It defines appropriate stuff so you can do \begin{code} ... \end{code}
+%
+
+
+\newcommand{\Spacing}[1]{
+    \renewcommand{\baselinestretch}{#1}
+    \tiny
+    \normalsize
+}
+
+
+\catcode`\@=11\relax
+
+{\catcode`\ =\active\gdef\@vobeyspaces{\catcode`\ \active \let \@xobeysp}}
+ 
+\def\@xobeysp{\leavevmode{} }
+
+\begingroup \catcode `|=0 \catcode `[= 1
+\catcode`]=2 \catcode `\{=12 \catcode `\}=12
+\catcode`\\=12 |gdef|@xcode#1\end{code}[#1|end[code]]
+|gdef|@sxcode#1\end{code*}[#1|end[code*]]
+|endgroup
+
+\def\@scode{\obeyspaces\@code}
+
+\def\@code{\trivlist \Spacing{1.0} \item[]\if@minipage\else\vskip\parskip\fi
+\leftskip\@totalleftmargin\rightskip\z@
+\parindent\z@\parfillskip\@flushglue\parskip\z@
+\@tempswafalse \def\par{\if@tempswa\hbox{}\fi\@tempswatrue\@@par}
+\obeylines \small\tt \let\do\@makeother \dospecials}
+
+\def\code{\@code \frenchspacing\@vobeyspaces \@xcode}
+\let\endcode=\endtrivlist
+
+\catcode`\@=12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
