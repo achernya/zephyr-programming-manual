@@ -63,7 +63,7 @@ main(argc,argv)
                         (void) strcat(user,"@");
                         (void) strcat(user,ZGetRealm());
                 } 
-                if ((retval = ZLocateUser(user,&numlocs)) != ZERR_NONE) {
+                if ((retval = ZLocateUser(user,&numlocs,ZAUTH)) != ZERR_NONE) {
                         (void) sprintf(bfr,"while locating user %s",user);
                         com_err(whoami,retval,bfr);
                         continue;

@@ -112,7 +112,7 @@ main(argc, argv)
     }
 
     /* Locate the user. */
-    if ((retval = ZLocateUser(argv[1], &totallocs)) != ZERR_NONE) {
+    if ((retval = ZLocateUser(argv[1], &totallocs, ZAUTH)) != ZERR_NONE) {
         com_err("sample", retval, "while locating user");
         exit (1);
     }
